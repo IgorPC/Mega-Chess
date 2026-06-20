@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: megachess-db
+
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-megachess}
@@ -17,7 +17,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: megachess-redis
+
     restart: always
     volumes:
       - redis_data:/data
@@ -26,7 +26,7 @@ services:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-    container_name: megachess-api
+
     restart: always
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-chess}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-megachess}
@@ -45,10 +45,8 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
-    container_name: megachess-web
+
     restart: always
-    ports:
-      - "80:80"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.megachess.rule=Host(`megachessonline.pcout.cloud`)"
