@@ -36,13 +36,24 @@ services:
       JWT_SECRET: megachess_jwt_secret_change_in_prod
       JWT_REFRESH_SECRET: megachess_refresh_secret_change_in_prod
       PORT: 3000
-      CORS_ORIGIN: http://localhost:5173
+      CORS_ORIGIN: http://localhost
     volumes:
       - ./apps/api:/app
       - api_node_modules:/app/node_modules
     depends_on:
       db:
         condition: service_healthy
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: megachess-web-dev
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
 
 volumes:
   pg_data:
