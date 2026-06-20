@@ -6,7 +6,6 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-megachess}
       POSTGRES_USER: ${POSTGRES_USER:-chess}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
