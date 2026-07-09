@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="globe-grad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3D4AEB"/>
+      <stop offset="100%" stop-color="#6B75FF"/>
+    </linearGradient>
+    <linearGradient id="king-grad" x1="20" y1="40" x2="100" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#C8CAFF"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Globe circle background -->
+  <circle cx="60" cy="60" r="56" fill="url(#globe-grad)" opacity="0.18"/>
+  <circle cx="60" cy="60" r="56" stroke="url(#globe-grad)" stroke-width="2.5" fill="none"/>
+
+  <!-- Globe latitude lines (subtle) -->
+  <ellipse cx="60" cy="60" rx="56" ry="22" stroke="#3D4AEB" stroke-width="1.2" fill="none" opacity="0.35"/>
+  <line x1="4" y1="60" x2="116" y2="60" stroke="#3D4AEB" stroke-width="1.2" opacity="0.35"/>
+
+  <!-- Globe longitude lines (subtle) -->
+  <ellipse cx="60" cy="60" rx="22" ry="56" stroke="#3D4AEB" stroke-width="1.2" fill="none" opacity="0.25"/>
+
+  <!-- King piece (white, centered, dominant) -->
+  <g filter="url(#glow)" transform="translate(60,60)">
+    <!-- Crown cross -->
+    <rect x="-3" y="-36" width="6" height="16" rx="2" fill="url(#king-grad)"/>
+    <rect x="-9" y="-32" width="18" height="5" rx="2" fill="url(#king-grad)"/>
+
+    <!-- Crown head -->
+    <path d="M-18 -20 L-14 -28 L-8 -22 L0 -30 L8 -22 L14 -28 L18 -20 Z" fill="url(#king-grad)"/>
+
+    <!-- Crown band -->
+    <rect x="-18" y="-20" width="36" height="7" rx="2" fill="url(#king-grad)"/>
+
+    <!-- Body taper -->
+    <path d="M-16 -13 L-20 18 L20 18 L16 -13 Z" fill="url(#king-grad)"/>
+
+    <!-- Base platform -->
+    <rect x="-22" y="18" width="44" height="6" rx="2" fill="url(#king-grad)"/>
+    <rect x="-26" y="24" width="52" height="7" rx="3" fill="url(#king-grad)"/>
+  </g>
+</svg>

@@ -1,0 +1,85 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: megachess-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: megachess
+      POSTGRES_USER: chess
+      POSTGRES_PASSWORD: chess_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chess -d megachess"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: megachess-redis
+    ports:
+      - "6379:6379"
+
+  api:
+    image: node:20-alpine
+    container_name: megachess-api-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run start:dev"
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://chess:chess_secret@db:5432/megachess
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: megachess_jwt_secret_change_in_prod
+      JWT_REFRESH_SECRET: megachess_refresh_secret_change_in_prod
+      ADMIN_JWT_SECRET: megachess_admin_jwt_secret_change_in_prod
+      PORT: 3000
+      # Múltiplas origens separadas por vírgula — web na 80, admin na 5174
+      CORS_ORIGIN: http://localhost,http://localhost:5174
+      # DeepSeek — lido do apps/api/.env automaticamente pelo NestJS ConfigModule
+      # Para desativar localmente, deixe DEEPSEEK_API_KEY vazio no .env da API
+    volumes:
+      - ./apps/api:/app
+      - api_node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: node:20-alpine
+    container_name: megachess-web-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "80:5173"
+    environment:
+      API_TARGET: http://api:3000
+    volumes:
+      - ./apps/web:/app
+      - web_node_modules:/app/node_modules
+    depends_on:
+      - api
+
+  admin:
+    image: node:20-alpine
+    container_name: megachess-admin-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host"
+    ports:
+      - "5174:5174"
+    environment:
+      VITE_API_URL: http://api:3000
+    volumes:
+      - ./apps/admin:/app
+      - admin_node_modules:/app/node_modules
+    depends_on:
+      - api
+
+volumes:
+  pg_data:
+  api_node_modules:
+  web_node_modules:
+  admin_node_modules:

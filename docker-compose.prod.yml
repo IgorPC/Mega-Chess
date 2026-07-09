@@ -1,0 +1,91 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-megachess}
+      POSTGRES_USER: ${POSTGRES_USER:-chess}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chess} -d ${POSTGRES_DB:-megachess}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-chess}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-megachess}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+      PORT: 3000
+      # Múltiplas origens: web principal + painel admin (separadas por vírgula)
+      CORS_ORIGIN: ${APP_URL:-https://homologa.megachess.io},${ADMIN_URL:-https://homologa.admin.megachess.io}
+      ASAAS_API_KEY: ${ASAAS_API_KEY}
+      ASAAS_WEBHOOK_TOKEN: ${ASAAS_WEBHOOK_TOKEN}
+      ASAAS_ENV: ${ASAAS_ENV:-sandbox}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      SMTP_HOST: ${SMTP_HOST:-smtp.hostinger.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-automatico@megachess.io}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM:-"Mega Chess <automatico@megachess.io>"}
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${APP_URL:-https://homologa.megachess.io}
+        - VITE_WS_URL=${APP_URL:-https://homologa.megachess.io}
+    restart: always
+    expose:
+      - "80"
+    depends_on:
+      - api
+
+  admin:
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile
+      args:
+        # VITE_API_URL é bakeado no bundle React em build time
+        - VITE_API_URL=${ADMIN_URL:-https://homologa.admin.megachess.io}
+    restart: always
+    environment:
+      # API_UPSTREAM: nome do serviço api dentro da rede Docker
+      API_UPSTREAM: ${API_UPSTREAM:-api:3000}
+    expose:
+      - "80"
+    depends_on:
+      - api
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.admin.rule=Host(`${ADMIN_DOMAIN:-homologa.admin.megachess.io}`)
+      - traefik.http.routers.admin.entrypoints=https
+      - traefik.http.routers.admin.tls=true
+      - traefik.http.routers.admin.tls.certresolver=letsencrypt
+      - traefik.http.services.admin.loadbalancer.server.port=80
+
+volumes:
+  pg_data:
+  redis_data:
+  uploads:

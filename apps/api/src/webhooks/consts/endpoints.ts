@@ -1,0 +1,11 @@
+export const WEBHOOKS_ROUTE = 'webhooks';
+export const WEBHOOKS_ASAAS_ROUTE = 'asaas';
+
+export const ASAAS_WEBHOOK_TOKEN_HEADER = 'asaas-access-token';
+
+export const ASAAS_EVENT_TYPES = {
+  PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
+  PAYMENT_CONFIRMED: 'PAYMENT_CONFIRMED',
+  TRANSFER_DONE: 'TRANSFER_DONE',
+  TRANSFER_FAILED: 'TRANSFER_FAILED',
+} as const;

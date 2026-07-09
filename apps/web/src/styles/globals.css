@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&display=swap');
+
+:root {
+  --color-bg: #0C0B13;
+  --color-surface: #1E1D2E;
+  --color-surface-2: #373855;
+  --color-surface-3: #2A2940;
+  --color-primary: #3D4AEB;
+  --color-primary-hover: #4f5cf5;
+  --color-primary-dim: rgba(61, 74, 235, 0.15);
+  --color-danger: #B15653;
+  --color-danger-hover: #c96360;
+  --color-danger-dim: rgba(177, 86, 83, 0.15);
+  --color-success: #4CAF50;
+  --color-success-dim: rgba(76, 175, 80, 0.15);
+  --color-text: #FFFFFF;
+  --color-text-muted: #8B8CA7;
+  --color-text-dim: #5a5b72;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-active: rgba(61, 74, 235, 0.5);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  --shadow-glow: 0 0 30px rgba(61, 74, 235, 0.25);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --transition: 150ms ease;
+  --font: 'DM Sans', -apple-system, sans-serif;
+  --navbar-height: 64px;
+}
+
+/* Animations */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideDown { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 600px; } }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+
+button {
+  font-family: var(--font);
+  cursor: pointer;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a { -webkit-tap-highlight-color: transparent; }
+
+input, textarea {
+  font-family: var(--font);
+  outline: none;
+  border: none;
+}
+
+img { display: block; max-width: 100%; }
+
+/* Accessible focus indicator for keyboard/mobile */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: var(--color-surface-2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-dim); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* Mobile menu animation */
+.mobile-menu-enter {
+  animation: fadeIn 150ms ease forwards;
+}
