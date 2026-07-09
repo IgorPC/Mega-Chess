@@ -1,8 +1,11 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { join } from 'path';
+import { I18nModule, I18nJsonLoader, AcceptLanguageResolver } from 'nestjs-i18n';
 import { IpBlacklistMiddleware } from './common/middleware/ip-blacklist.middleware';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { AuthenticatedUserLocaleResolver } from './i18n/authenticated-user-locale.resolver';
 import { LoggingThrottlerGuard } from './common/guards/logging-throttler.guard';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
@@ -33,6 +36,18 @@ import { RedisModule } from './redis/redis.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    I18nModule.forRoot({
+      fallbackLanguage: 'pt',
+      loader: I18nJsonLoader,
+      loaderOptions: {
+        path: join(__dirname, 'i18n/'),
+        watch: true,
+      },
+      resolvers: [
+        AuthenticatedUserLocaleResolver,
+        AcceptLanguageResolver,
+      ],
+    }),
     // Global default for internal/authenticated routes. Public, sensitive, and
     // payment-related routes override this with a stricter @Throttle() at the
     // controller level (see auth.controller.ts, admin/auth, wallet.controller.ts).

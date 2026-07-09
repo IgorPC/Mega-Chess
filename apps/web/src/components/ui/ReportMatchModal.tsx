@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api';
 import { Button } from './Button';
 import { Badge } from './Badge';
@@ -22,12 +23,6 @@ interface Props {
   onClose: () => void;
 }
 
-const VERDICT_LABEL: Record<ReportVerdict, string> = {
-  CLEAN: '✓ Limpo',
-  SUSPICIOUS: '⚠ Suspeito',
-  CHEATING: '🚫 Trapaça detectada',
-};
-
 const VERDICT_VARIANT: Record<ReportVerdict, 'success' | 'warning' | 'danger'> = {
   CLEAN: 'success',
   SUSPICIOUS: 'warning',
@@ -37,6 +32,7 @@ const VERDICT_VARIANT: Record<ReportVerdict, 'success' | 'warning' | 'danger'> =
 const MAX_AGE_HOURS = 72;
 
 export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClose }: Props) {
+  const { t } = useTranslation('common');
   const [phase, setPhase] = useState<'loading' | 'form' | 'existing' | 'done' | 'expired'>('loading');
   const [existing, setExisting] = useState<Report | null>(null);
   const [note, setNote] = useState('');
@@ -71,7 +67,7 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
       setExisting({ id: r.reportId, status: 'ANALYZING', aiVerdict: null, aiConfidence: null, aiExplanation: null, createdAt: new Date().toISOString() });
       setPhase('done');
     } catch (err: any) {
-      setError(err.message ?? 'Erro ao enviar denúncia');
+      setError(err.message ?? t('report_modal.generic_error'));
       setSubmitting(false);
     }
   };
@@ -84,7 +80,7 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
       await api.post(`/matches/${matchId}/report/appeal`, { note: appealNote.trim() });
       setAppealDone(true);
     } catch (err: any) {
-      setError(err.message ?? 'Erro ao enviar apelação');
+      setError(err.message ?? t('report_modal.appeal_error'));
     } finally {
       setAppealSubmitting(false);
     }
@@ -102,18 +98,18 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
         border: '1px solid var(--color-border)',
       }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <h2 style={{ fontSize: 17, fontWeight: 700 }}>Denunciar partida</h2>
+          <h2 style={{ fontSize: 17, fontWeight: 700 }}>{t('report_modal.title')}</h2>
           <button onClick={onClose} style={{ background: 'transparent', color: 'var(--color-text-muted)', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>×</button>
         </div>
 
         <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-          Oponente: <strong style={{ color: 'var(--color-text)' }}>@{opponentNickname}</strong>
+          {t('report_modal.opponent')} <strong style={{ color: 'var(--color-text)' }}>@{opponentNickname}</strong>
         </div>
 
         {/* ── Loading ── */}
         {phase === 'loading' && (
           <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--color-text-muted)' }}>
-            Verificando...
+            {t('report_modal.checking')}
           </div>
         )}
 
@@ -122,9 +118,9 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
           <div style={{ textAlign: 'center', padding: '16px 0' }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>⏱</div>
             <p style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>
-              O prazo de {MAX_AGE_HOURS}h para denúncias desta partida expirou.
+              {t('report_modal.expired_message', { hours: MAX_AGE_HOURS })}
             </p>
-            <Button style={{ marginTop: 16 }} onClick={onClose}>Fechar</Button>
+            <Button style={{ marginTop: 16 }} onClick={onClose}>{t('report_modal.close')}</Button>
           </div>
         )}
 
@@ -132,16 +128,16 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
         {phase === 'form' && (
           <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-muted)' }}>
-              A partida será analisada automaticamente. Você receberá uma notificação com o resultado em alguns instantes.
+              {t('report_modal.form_description')}
             </p>
             <div>
               <label style={{ fontSize: 12, color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 }}>
-                Observação (opcional)
+                {t('report_modal.note_label')}
               </label>
               <textarea
                 value={note}
                 onChange={e => setNote(e.target.value)}
-                placeholder="Descreva o comportamento suspeito que observou..."
+                placeholder={t('report_modal.note_placeholder')}
                 maxLength={1000}
                 rows={3}
                 style={{
@@ -158,8 +154,8 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
               </div>
             )}
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <Button type="button" variant="ghost" onClick={onClose} disabled={submitting}>Cancelar</Button>
-              <Button type="submit" disabled={submitting}>{submitting ? 'Enviando...' : 'Denunciar'}</Button>
+              <Button type="button" variant="ghost" onClick={onClose} disabled={submitting}>{t('report_modal.cancel')}</Button>
+              <Button type="submit" disabled={submitting}>{submitting ? t('report_modal.sending') : t('report_modal.report')}</Button>
             </div>
           </form>
         )}
@@ -168,11 +164,11 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
         {phase === 'done' && (
           <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
-            <p style={{ fontWeight: 600, marginBottom: 8 }}>Denúncia enviada!</p>
+            <p style={{ fontWeight: 600, marginBottom: 8 }}>{t('report_modal.report_sent_title')}</p>
             <p style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-              A análise foi iniciada. Você receberá uma notificação com o resultado.
+              {t('report_modal.report_sent_description')}
             </p>
-            <Button style={{ marginTop: 20 }} onClick={onClose}>Fechar</Button>
+            <Button style={{ marginTop: 20 }} onClick={onClose}>{t('report_modal.close')}</Button>
           </div>
         )}
 
@@ -184,15 +180,15 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
               background: 'var(--color-surface-2)', border: '1px solid var(--color-border)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>Status da análise</span>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{t('report_modal.analysis_status')}</span>
                 {existing.status === 'ANALYZING' ? (
-                  <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>⏳ Analisando...</span>
+                  <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{t('report_modal.analyzing')}</span>
                 ) : existing.aiVerdict ? (
                   <Badge variant={VERDICT_VARIANT[existing.aiVerdict]}>
-                    {VERDICT_LABEL[existing.aiVerdict]}
+                    {t(`report_modal.verdict.${existing.aiVerdict}`)}
                   </Badge>
                 ) : (
-                  <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Em revisão manual</span>
+                  <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{t('report_modal.under_review')}</span>
                 )}
               </div>
 
@@ -204,7 +200,7 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
 
               {existing.aiConfidence && (
                 <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 8 }}>
-                  Confiança: {Math.round(parseFloat(existing.aiConfidence) * 100)}%
+                  {t('report_modal.confidence', { percent: Math.round(parseFloat(existing.aiConfidence) * 100) })}
                 </div>
               )}
             </div>
@@ -213,13 +209,13 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
             {existing.aiVerdict === 'CLEAN' && existing.status === 'COMPLETED' && !appealDone && (
               <div>
                 <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 10 }}>
-                  Discorda do resultado? Você pode apelar e um administrador revisará manualmente.
+                  {t('report_modal.appeal_prompt')}
                 </p>
                 <form onSubmit={submitAppeal} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <textarea
                     value={appealNote}
                     onChange={e => setAppealNote(e.target.value)}
-                    placeholder="Explique por que acredita que houve trapaça..."
+                    placeholder={t('report_modal.appeal_placeholder')}
                     maxLength={2000}
                     rows={3}
                     style={{
@@ -231,7 +227,7 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
                   />
                   {error && <div style={{ fontSize: 13, color: 'var(--color-danger)' }}>{error}</div>}
                   <Button type="submit" variant="ghost" disabled={appealSubmitting || !appealNote.trim()}>
-                    {appealSubmitting ? 'Enviando...' : 'Apelar para revisão humana'}
+                    {appealSubmitting ? t('report_modal.sending') : t('report_modal.appeal_submit')}
                   </Button>
                 </form>
               </div>
@@ -243,11 +239,11 @@ export function ReportMatchModal({ matchId, opponentNickname, finishedAt, onClos
                 background: 'rgba(76,175,80,0.1)', border: '1px solid var(--color-success)',
                 fontSize: 13, color: 'var(--color-success)',
               }}>
-                ✓ Apelação enviada. Um administrador revisará em breve.
+                {t('report_modal.appeal_sent')}
               </div>
             )}
 
-            <Button variant="ghost" onClick={onClose}>Fechar</Button>
+            <Button variant="ghost" onClick={onClose}>{t('report_modal.close')}</Button>
           </div>
         )}
       </div>

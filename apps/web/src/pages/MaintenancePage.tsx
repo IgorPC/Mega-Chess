@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export function MaintenancePage({ message }: { message?: string }) {
+  const { t } = useTranslation('maintenance');
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', flexDirection: 'column',
@@ -9,10 +11,10 @@ export function MaintenancePage({ message }: { message?: string }) {
     }}>
       <div style={{ fontSize: 56, marginBottom: 20 }}>🔧</div>
       <h1 style={{ fontSize: 26, fontWeight: 700, marginBottom: 12 }}>
-        Plataforma em manutenção
+        {t('title')}
       </h1>
       <p style={{ fontSize: 15, color: 'var(--color-text-muted)', maxWidth: 400, lineHeight: 1.6 }}>
-        {message ?? 'Estamos realizando melhorias. Voltaremos em breve!'}
+        {message ?? t('default_message')}
       </p>
       <button
         onClick={() => window.location.reload()}
@@ -23,7 +25,7 @@ export function MaintenancePage({ message }: { message?: string }) {
           cursor: 'pointer',
         }}
       >
-        Tentar novamente
+        {t('retry')}
       </button>
     </div>
   );

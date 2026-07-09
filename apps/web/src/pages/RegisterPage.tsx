@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth.store';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { Button } from '../components/ui/Button';
@@ -11,6 +12,7 @@ import { useState } from 'react';
 import logoSvg from '../assets/logo.svg';
 
 export function RegisterPage() {
+  const { t } = useTranslation('auth');
   const { register: registerUser, resendVerification } = useAuthStore();
   const { isMobile } = useBreakpoint();
   const [searchParams] = useSearchParams();
@@ -30,7 +32,7 @@ export function RegisterPage() {
       await registerUser({ name: data.name, nickname: data.nickname, email: data.email, password: data.password, referralCode: refCode });
       setEmailSentTo(data.email);
     } catch (err: unknown) {
-      setServerError(err instanceof Error ? err.message : 'Erro ao criar conta');
+      setServerError(err instanceof Error ? err.message : t('register.generic_error'));
     }
   };
 
@@ -65,22 +67,21 @@ export function RegisterPage() {
           <Card glow>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 48, marginBottom: 16 }}>📬</div>
-              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Verifique seu email</h2>
+              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>{t('register.verify_email_title')}</h2>
               <p style={{ fontSize: 14, color: 'var(--color-text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
-                Enviamos um link de confirmação para{' '}
-                <strong style={{ color: 'var(--color-text)' }}>{emailSentTo}</strong>.
+                {t('register.verify_email_sent', { email: emailSentTo })}
                 <br />
-                Clique no link para ativar sua conta.
+                {t('register.verify_email_instructions')}
               </p>
               <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-                Não recebeu o email? Verifique a pasta de spam ou solicite um novo abaixo.
+                {t('register.didnt_receive')}
               </p>
               {resendSent ? (
                 <div style={{
                   padding: '10px 14px', borderRadius: 'var(--radius-sm)',
                   background: 'rgba(45,106,79,0.2)', color: '#4ade80', fontSize: 13, marginBottom: 20,
                 }}>
-                  Email reenviado com sucesso!
+                  {t('register.resend_success')}
                 </div>
               ) : (
                 <Button
@@ -90,12 +91,12 @@ export function RegisterPage() {
                   onClick={handleResend}
                   style={{ marginBottom: 16 }}
                 >
-                  Reenviar email de confirmação
+                  {t('register.resend_button')}
                 </Button>
               )}
               <p style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>
-                Já confirmou?{' '}
-                <Link to="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>Entrar</Link>
+                {t('register.already_confirmed')}{' '}
+                <Link to="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>{t('login.title')}</Link>
               </p>
             </div>
           </Card>
@@ -109,42 +110,42 @@ export function RegisterPage() {
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 32, gap: 10 }}>
           <img src={logoSvg} alt="" style={{ width: 60, height: 60 }} />
-          <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em' }}>Criar conta</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em' }}>{t('register.title')}</h1>
         </div>
 
         <Card glow>
           <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <Input
-              label="Nome completo"
-              placeholder="João Silva"
-              error={errors.name?.message}
+              label={t('register.name_label')}
+              placeholder={t('register.name_placeholder')}
+              error={errors.name?.message ? t(errors.name.message) : undefined}
               {...register('name')}
             />
             <Input
-              label="Apelido (nickname)"
-              placeholder="joao_chess"
-              error={errors.nickname?.message}
+              label={t('register.nickname_label')}
+              placeholder={t('register.nickname_placeholder')}
+              error={errors.nickname?.message ? t(errors.nickname.message) : undefined}
               {...register('nickname')}
             />
             <Input
               label="Email"
               type="email"
               placeholder="seu@email.com"
-              error={errors.email?.message}
+              error={errors.email?.message ? t(errors.email.message) : undefined}
               {...register('email')}
             />
             <Input
-              label="Senha"
+              label={t('register.password_label')}
               type="password"
-              placeholder="Mínimo 6 caracteres"
-              error={errors.password?.message}
+              placeholder={t('register.password_placeholder')}
+              error={errors.password?.message ? t(errors.password.message) : undefined}
               {...register('password')}
             />
             <Input
-              label="Confirmar senha"
+              label={t('register.confirm_password_label')}
               type="password"
-              placeholder="Repita a senha"
-              error={errors.confirmPassword?.message}
+              placeholder={t('register.confirm_password_placeholder')}
+              error={errors.confirmPassword?.message ? t(errors.confirmPassword.message) : undefined}
               {...register('confirmPassword')}
             />
 
@@ -155,13 +156,13 @@ export function RegisterPage() {
             )}
 
             <Button type="submit" loading={isSubmitting} fullWidth size="lg" style={{ marginTop: 8 }}>
-              Criar conta
+              {t('register.submit')}
             </Button>
           </form>
 
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-text-muted)' }}>
-            Já tem conta?{' '}
-            <Link to="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>Entrar</Link>
+            {t('register.have_account')}{' '}
+            <Link to="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>{t('register.login_link')}</Link>
           </p>
         </Card>
       </div>

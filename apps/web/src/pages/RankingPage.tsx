@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { Avatar } from '../components/ui/Avatar';
@@ -18,16 +19,17 @@ interface RankPlayer {
   periodRating?: number;
 }
 
-const PERIOD_TABS: { key: Period; label: string }[] = [
-  { key: 'day', label: 'Hoje' },
-  { key: 'week', label: 'Semana' },
-  { key: 'month', label: 'Mês' },
+const PERIOD_TABS: { key: Period; labelKey: string }[] = [
+  { key: 'day', labelKey: 'ranking.today' },
+  { key: 'week', labelKey: 'ranking.week' },
+  { key: 'month', labelKey: 'ranking.month' },
 ];
 
 const MEDAL_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
 const MEDAL_ICONS = ['🥇', '🥈', '🥉'];
 
 export function RankingPage() {
+  const { t } = useTranslation('ranking');
   const { user } = useAuthStore();
   const { isMobile } = useBreakpoint();
   const [period, setPeriod] = useState<Period>('week');
@@ -53,7 +55,7 @@ export function RankingPage() {
       setPlayers(p);
       setMyRank(r);
     }).catch(() => {
-      setError('Não foi possível carregar o ranking. Tente novamente.');
+      setError(t('load_error'));
     }).finally(() => {
       setLoading(false);
       setSwitching(false);
@@ -63,8 +65,8 @@ export function RankingPage() {
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: isMobile ? '20px 16px' : '40px 24px' }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, letterSpacing: '-0.03em' }}>Ranking</h1>
-        <p style={{ color: 'var(--color-text-muted)', marginTop: 4, fontSize: 14 }}>Top 100 jogadores</p>
+        <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, letterSpacing: '-0.03em' }}>{t('title')}</h1>
+        <p style={{ color: 'var(--color-text-muted)', marginTop: 4, fontSize: 14 }}>{t('top_100')}</p>
       </div>
 
       {myRank && (
@@ -77,7 +79,7 @@ export function RankingPage() {
             <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {user?.nickname}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Sua posição</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{t('your_position')}</div>
           </div>
           <div style={{ fontWeight: 700, fontSize: isMobile ? 16 : 20, color: 'var(--color-primary)', flexShrink: 0 }}>
             {myRank.rating} ELO
@@ -90,17 +92,17 @@ export function RankingPage() {
         background: 'var(--color-surface)', borderRadius: 'var(--radius-sm)',
         padding: 4, width: isMobile ? '100%' : 'fit-content',
       }}>
-        {PERIOD_TABS.map(t => (
-          <button key={t.key} onClick={() => setPeriod(t.key)} disabled={switching} style={{
+        {PERIOD_TABS.map(tab => (
+          <button key={tab.key} onClick={() => setPeriod(tab.key)} disabled={switching} style={{
             flex: isMobile ? 1 : undefined,
             padding: '7px 20px', borderRadius: 'var(--radius-sm)',
             fontSize: 14, fontWeight: 500,
-            background: period === t.key ? 'var(--color-surface-2)' : 'transparent',
-            color: period === t.key ? 'var(--color-text)' : 'var(--color-text-muted)',
+            background: period === tab.key ? 'var(--color-surface-2)' : 'transparent',
+            color: period === tab.key ? 'var(--color-text)' : 'var(--color-text-muted)',
             transition: 'all var(--transition)',
             opacity: switching ? 0.6 : 1,
           }}>
-            {t.label}
+            {t(tab.labelKey)}
           </button>
         ))}
       </div>
@@ -113,20 +115,20 @@ export function RankingPage() {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
         }}>
           {error}
-          <Button size="sm" variant="ghost" onClick={() => setPeriod(p => p)}>Tentar novamente</Button>
+          <Button size="sm" variant="ghost" onClick={() => setPeriod(p => p)}>{t('retry')}</Button>
         </div>
       )}
 
       <Card style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-muted)' }}>
-            Carregando...
+            {t('loading')}
           </div>
         ) : players.length === 0 ? (
           <div style={{ padding: 48, textAlign: 'center' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🏆</div>
             <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
-              Nenhum jogador no ranking ainda para este período.
+              {t('empty')}
             </p>
           </div>
         ) : (

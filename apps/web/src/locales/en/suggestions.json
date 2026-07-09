@@ -1,0 +1,45 @@
+{
+  "just_now": "just now",
+  "minutes_ago": "{{count}}min ago",
+  "hours_ago": "{{count}}h ago",
+  "days_ago": "{{count}}d ago",
+  "status": {
+    "open": "Open",
+    "completed": "Completed",
+    "rejected": "Rejected"
+  },
+  "create_modal": {
+    "title": "New improvement suggestion",
+    "title_label": "Title ({{count}}/100)",
+    "title_placeholder": "Summary of your suggestion",
+    "description_label": "Description ({{count}}/1000)",
+    "description_placeholder": "Describe your suggestion in detail...",
+    "generic_error": "Error creating suggestion",
+    "cancel": "Cancel",
+    "submit": "Submit suggestion"
+  },
+  "card": {
+    "cannot_vote_own": "You can't vote on your own suggestion",
+    "vote_limit_reached": "Vote limit reached",
+    "remove_vote": "Remove vote",
+    "vote": "Vote",
+    "team_note": "Team note:",
+    "by": "by"
+  },
+  "already_voted": "You already voted on this suggestion.",
+  "vote_error": "Couldn't register your vote. Please try again.",
+  "title": "Improvement suggestions",
+  "vote_favorites": "Vote on your favorites",
+  "votes_remaining_one": "{{count}} vote left this week",
+  "votes_remaining_other": "{{count}} votes left this week",
+  "refresh": "Refresh list",
+  "new_suggestion": "+ New suggestion",
+  "tab_open": "Open",
+  "tab_completed": "Completed",
+  "loading": "Loading...",
+  "no_open": "No open suggestions yet",
+  "no_completed": "No completed suggestions",
+  "send_suggestion": "Submit suggestion",
+  "previous": "← Previous",
+  "next": "Next →"
+}

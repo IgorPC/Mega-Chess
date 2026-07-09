@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth.store';
 import { useGameStore } from '../store/game.store';
 import { useSocialStore } from '../store/social.store';
@@ -26,13 +27,13 @@ function queueColor(count: number) {
   return '#22c55e';
 }
 
-function queueLabel(count: number) {
-  if (count <= 2) return 'Baixa';
-  if (count <= 8) return 'Média';
-  return 'Alta';
-}
-
 export function LobbyPage() {
+  const { t } = useTranslation('lobby');
+  const queueLabel = (count: number) => {
+    if (count <= 2) return t('queue_low');
+    if (count <= 8) return t('queue_medium');
+    return t('queue_high');
+  };
   const { user } = useAuthStore();
   const { setMatch } = useGameStore();
   const { challenges, removeChallenge, onlineIds, setOnlineFriends, outgoingChallenges, setPendingChallenge, clearOutgoingChallenge } = useSocialStore();
@@ -117,7 +118,7 @@ export function LobbyPage() {
         await api.delete('/matchmaking/queue');
         setSearching(false);
       } catch {
-        setSearchError('Não foi possível cancelar a busca. Tente novamente.');
+        setSearchError(t('cancel_search_error'));
       }
     } else {
       try {
@@ -129,7 +130,7 @@ export function LobbyPage() {
         setSearching(true);
         startPolling();
       } catch {
-        setSearchError('Não foi possível iniciar a busca. Tente novamente.');
+        setSearchError(t('start_search_error'));
       }
     }
     setSearchLoading(false);
@@ -167,10 +168,10 @@ export function LobbyPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, letterSpacing: '-0.03em' }}>
-              Bom jogo, <span style={{ color: 'var(--color-primary)' }}>{user?.nickname}</span>!
+              {t('greeting', { nickname: user?.nickname })}
             </h1>
             <p style={{ color: 'var(--color-text-muted)', marginTop: 6, fontSize: 14 }}>
-              Pronto para uma partida? ELO atual:{' '}
+              {t('ready_prompt')}{' '}
               <strong style={{ color: '#fff' }}>{user?.rating}</strong>
             </p>
             {activeMatchId && (
@@ -180,7 +181,7 @@ export function LobbyPage() {
                 style={{ marginTop: 12 }}
                 onClick={() => navigate(`/game/${activeMatchId}`)}
               >
-                ♟ Voltar para a partida em andamento
+                {t('back_to_match')}
               </Button>
             )}
           </div>
@@ -189,12 +190,10 @@ export function LobbyPage() {
           <Card glow={searching} style={{ textAlign: 'center', padding: isMobile ? 32 : 48 }}>
             <div style={{ fontSize: isMobile ? 48 : 64, marginBottom: 12 }}>♚</div>
             <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 600, marginBottom: 8 }}>
-              {searching ? 'Buscando oponente...' : 'Encontrar Partida'}
+              {searching ? t('searching') : t('find_match')}
             </h2>
             <p style={{ color: 'var(--color-text-muted)', marginBottom: 16, fontSize: 14 }}>
-              {searching
-                ? 'Aguarde enquanto encontramos um adversário de nível similar'
-                : 'Será pareado com jogadores de ELO próximo ao seu'}
+              {searching ? t('searching_description') : t('find_match_description')}
             </p>
             {searchError && (
               <p style={{ fontSize: 13, color: 'var(--color-danger)', marginBottom: 12 }}>
@@ -209,14 +208,14 @@ export function LobbyPage() {
               style={{ minWidth: isMobile ? '100%' : 200 }}
             >
               {searchLoading
-                ? 'Aguarde...'
+                ? t('please_wait')
                 : searching
-                ? <><PulseIcon /> Cancelar busca</>
-                : 'Jogar agora'}
+                ? <><PulseIcon /> {t('cancel_search')}</>
+                : t('play_now')}
             </Button>
             {casualCount !== null && (
               <div style={{ marginTop: 12, fontSize: 13, color: queueColor(casualCount) }}>
-                ● Atividade {queueLabel(casualCount)}
+                ● {t('activity', { level: queueLabel(casualCount) })}
               </div>
             )}
           </Card>
@@ -231,9 +230,9 @@ export function LobbyPage() {
                 fontSize: 24, flexShrink: 0,
               }}>🤖</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>Jogar contra a IA</div>
+                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 3 }}>{t('play_vs_ai')}</div>
                 <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-                  Pratique offline · ELO não afetado
+                  {t('practice_offline')}
                 </div>
               </div>
               <Button
@@ -241,7 +240,7 @@ export function LobbyPage() {
                 onClick={() => navigate('/play/offline')}
                 style={{ flexShrink: 0 }}
               >
-                Jogar
+                {t('play')}
               </Button>
             </div>
           </Card>
@@ -250,7 +249,7 @@ export function LobbyPage() {
           {challenges.length > 0 && (
             <Card>
               <h3 style={{ fontWeight: 600, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                Desafios recebidos
+                {t('challenges_received')}
                 <Badge variant="danger">{challenges.length}</Badge>
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -270,12 +269,12 @@ export function LobbyPage() {
         {/* Sidebar — Friends */}
         <Card>
           <h3 style={{ fontWeight: 600, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            Amigos
-            <Badge variant={onlineCount > 0 ? 'success' : 'muted'}>{onlineCount} online</Badge>
+            {t('friends')}
+            <Badge variant={onlineCount > 0 ? 'success' : 'muted'}>{t('online_count', { count: onlineCount })}</Badge>
           </h3>
           {friends.length === 0 ? (
             <p style={{ color: 'var(--color-text-muted)', fontSize: 14, textAlign: 'center', padding: '16px 0' }}>
-              Nenhum amigo ainda
+              {t('no_friends')}
             </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -309,6 +308,7 @@ function ChallengeRow({ challenge, onAccept, onDeny }: {
   onAccept: () => void;
   onDeny: () => void;
 }) {
+  const { t } = useTranslation('lobby');
   const [remaining, setRemaining] = useState(
     Math.max(0, Math.round((challenge.expiresAt - Date.now()) / 1000)),
   );
@@ -344,9 +344,9 @@ function ChallengeRow({ challenge, onAccept, onDeny }: {
           disabled={accepting}
           onClick={async () => { setAccepting(true); await onAccept(); }}
         >
-          {accepting ? '...' : 'Aceitar'}
+          {accepting ? '...' : t('accept')}
         </Button>
-        <Button size="sm" variant="ghost" disabled={accepting} onClick={onDeny}>Recusar</Button>
+        <Button size="sm" variant="ghost" disabled={accepting} onClick={onDeny}>{t('decline')}</Button>
       </div>
     </div>
   );
@@ -357,6 +357,7 @@ function FriendRow({ friend, outgoing, onChallenge }: {
   outgoing?: { status: 'pending' | 'rejected'; cooldownUntil: number };
   onChallenge: () => void;
 }) {
+  const { t } = useTranslation('lobby');
   const [hover, setHover] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -384,7 +385,7 @@ function FriendRow({ friend, outgoing, onChallenge }: {
     if (outgoing?.status === 'pending') {
       return (
         <Button size="sm" disabled style={{ fontSize: 11, padding: '4px 8px', opacity: 0.6 }}>
-          Aguardando...
+          {t('waiting')}
         </Button>
       );
     }
@@ -398,7 +399,7 @@ function FriendRow({ friend, outgoing, onChallenge }: {
     if (hover) {
       return (
         <Button size="sm" onClick={onChallenge} style={{ fontSize: 11, padding: '4px 8px' }}>
-          Desafiar
+          {t('challenge')}
         </Button>
       );
     }

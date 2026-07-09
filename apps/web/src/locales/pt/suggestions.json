@@ -1,0 +1,45 @@
+{
+  "just_now": "agora",
+  "minutes_ago": "{{count}}min atrás",
+  "hours_ago": "{{count}}h atrás",
+  "days_ago": "{{count}}d atrás",
+  "status": {
+    "open": "Aberta",
+    "completed": "Concluída",
+    "rejected": "Rejeitada"
+  },
+  "create_modal": {
+    "title": "Nova sugestão de melhoria",
+    "title_label": "Título ({{count}}/100)",
+    "title_placeholder": "Resumo da sua sugestão",
+    "description_label": "Descrição ({{count}}/1000)",
+    "description_placeholder": "Descreva sua sugestão com detalhes...",
+    "generic_error": "Erro ao criar sugestão",
+    "cancel": "Cancelar",
+    "submit": "Enviar sugestão"
+  },
+  "card": {
+    "cannot_vote_own": "Não é possível votar na própria sugestão",
+    "vote_limit_reached": "Limite de votos atingido",
+    "remove_vote": "Remover voto",
+    "vote": "Votar",
+    "team_note": "Nota da equipe:",
+    "by": "por"
+  },
+  "already_voted": "Você já votou nesta sugestão.",
+  "vote_error": "Não foi possível registrar seu voto. Tente novamente.",
+  "title": "Sugestões de melhoria",
+  "vote_favorites": "Vote nas suas favoritas",
+  "votes_remaining_one": "{{count}} voto restante esta semana",
+  "votes_remaining_other": "{{count}} votos restantes esta semana",
+  "refresh": "Atualizar lista",
+  "new_suggestion": "+ Nova sugestão",
+  "tab_open": "Abertas",
+  "tab_completed": "Concluídas",
+  "loading": "Carregando...",
+  "no_open": "Nenhuma sugestão aberta ainda",
+  "no_completed": "Nenhuma sugestão concluída",
+  "send_suggestion": "Enviar sugestão",
+  "previous": "← Anterior",
+  "next": "Próxima →"
+}

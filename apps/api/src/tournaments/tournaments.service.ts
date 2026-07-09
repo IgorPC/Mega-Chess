@@ -1,6 +1,7 @@
 import {
   Injectable, BadRequestException, NotFoundException,
   ForbiddenException, Logger, OnModuleInit, OnModuleDestroy,
+  Inject, forwardRef,
 } from '@nestjs/common';
 import { Repository, DataSource, In, ILike, MoreThan } from 'typeorm';
 import { TournamentsRepository } from './tournaments.repository';
@@ -121,7 +122,7 @@ export class TournamentsService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly repo: TournamentsRepository,
-    private wallet: WalletService,
+    @Inject(forwardRef(() => WalletService)) private wallet: WalletService,
     private matchesSvc: MatchesService,
     private notifications: NotificationsService,
     private deepseek: DeepseekService,

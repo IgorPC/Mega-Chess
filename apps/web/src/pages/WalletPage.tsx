@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/auth.store';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -55,13 +56,6 @@ interface DepositResult {
   valueBrl: number;
 }
 
-const DEPOSIT_STATUS_LABEL: Record<DepositStatus, string> = {
-  PENDING: 'Aguardando pagamento',
-  COMPLETED: 'Pago',
-  EXPIRED: 'Expirado',
-  CANCELLED: 'Cancelado',
-};
-
 const DEPOSIT_STATUS_COLOR: Record<DepositStatus, string> = {
   PENDING: '#E8A838',
   COMPLETED: '#4CAF50',
@@ -69,31 +63,6 @@ const DEPOSIT_STATUS_COLOR: Record<DepositStatus, string> = {
   CANCELLED: 'var(--color-danger)',
 };
 
-const TX_LABELS: Record<TransactionType, string> = {
-  DEPOSIT: 'Depósito',
-  WITHDRAWAL: 'Saque',
-  WITHDRAWAL_FEE: 'Taxa de saque',
-  TOURNAMENT_ENTRY: 'Entrada em torneio',
-  ENTRY_RESERVE: 'Reserva (duelo)',
-  ENTRY_RELEASE: 'Estorno (duelo)',
-  PRIZE: 'Prêmio',
-  RAKE: 'Taxa da plataforma',
-  REFUND: 'Reembolso',
-};
-
-// CC transaction display helpers
-const CC_TX_LABEL: Record<string, string> = {
-  TOURNAMENT_ENTRY: 'Taxa de entrada — torneio',
-  TOURNAMENT_CREATION_FEE: 'Taxa de criação — torneio',
-  ENTRY_RESERVE: 'Reserva — duelo',
-  ENTRY_RELEASE: 'Estorno — saiu da fila',
-  PRIZE: 'Prêmio recebido',
-  RAKE: 'Taxa da plataforma',
-  REFUND: 'Reembolso',
-  DEPOSIT: 'Depósito PIX convertido',
-  WITHDRAWAL: 'Saque solicitado',
-  WITHDRAWAL_FEE: 'Taxa de saque',
-};
 const CC_TX_ICON: Record<string, string> = {
   TOURNAMENT_ENTRY: '🏆',
   TOURNAMENT_CREATION_FEE: '🏗️',
@@ -108,16 +77,10 @@ const CC_TX_ICON: Record<string, string> = {
 };
 const CC_TX_CREDIT = ['PRIZE', 'ENTRY_RELEASE', 'REFUND', 'DEPOSIT'];
 
-const PIX_KEY_LABELS: Record<PixKeyType, string> = {
-  CPF: 'CPF',
-  EMAIL: 'E-mail',
-  PHONE: 'Telefone',
-  EVP: 'Chave aleatória',
-};
-
 // ─── Deposit QR Code Modal ────────────────────────────────────────────────────
 
 function DepositModal({ result, onClose }: { result: DepositResult; onClose: () => void }) {
+  const { t, i18n } = useTranslation('wallet');
   const [copied, setCopied] = useState(false);
 
   const copy = useCallback(async () => {
@@ -126,7 +89,7 @@ function DepositModal({ result, onClose }: { result: DepositResult; onClose: () 
     setTimeout(() => setCopied(false), 2000);
   }, [result.copyPaste]);
 
-  const expiresAt = new Date(result.expiresAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const expiresAt = new Date(result.expiresAt).toLocaleTimeString(i18n.language === 'en' ? 'en-US' : 'pt-BR', { hour: '2-digit', minute: '2-digit' });
 
   return (
     <div style={{
@@ -140,10 +103,10 @@ function DepositModal({ result, onClose }: { result: DepositResult; onClose: () 
         maxWidth: 420, width: '90%', textAlign: 'center',
         boxShadow: 'var(--shadow-card)',
       }}>
-        <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Pagar com PIX</h2>
+        <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>{t('deposit_modal.title')}</h2>
         <p style={{ color: 'var(--color-text-muted)', fontSize: 13, marginBottom: 20 }}>
-          Valor: <strong style={{ color: 'var(--color-text)' }}>R$ {result.valueBrl.toFixed(2)}</strong>
-          {' '}· Expira às {expiresAt}
+          {t('deposit_modal.value_label')} <strong style={{ color: 'var(--color-text)' }}>R$ {result.valueBrl.toFixed(2)}</strong>
+          {' '}{t('deposit_modal.expires_at', { time: expiresAt })}
         </p>
 
         {/* QR Code image from base64 — only render if string is valid base64 */}
@@ -163,7 +126,7 @@ function DepositModal({ result, onClose }: { result: DepositResult; onClose: () 
 
         <div style={{ marginBottom: 20 }}>
           <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 8 }}>
-            Ou copie o código PIX Copia e Cola:
+            {t('deposit_modal.copy_paste_hint')}
           </p>
           <div style={{
             background: 'var(--color-surface-2)', borderRadius: 'var(--radius-sm)',
@@ -175,14 +138,14 @@ function DepositModal({ result, onClose }: { result: DepositResult; onClose: () 
             {result.copyPaste}
           </div>
           <Button fullWidth size="sm" variant="outline" style={{ marginTop: 8 }} onClick={copy}>
-            {copied ? '✓ Copiado!' : 'Copiar código'}
+            {copied ? t('deposit_modal.copied') : t('deposit_modal.copy_code')}
           </Button>
         </div>
 
         <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 16 }}>
-          Após o pagamento, o saldo será creditado automaticamente em até 1 minuto.
+          {t('deposit_modal.auto_credit_notice')}
         </p>
-        <Button fullWidth variant="ghost" onClick={onClose}>Fechar</Button>
+        <Button fullWidth variant="ghost" onClick={onClose}>{t('deposit_modal.close')}</Button>
       </div>
     </div>
   );
@@ -205,6 +168,7 @@ const inputStyle: React.CSSProperties = {
 // ─── Copy Paste Row ───────────────────────────────────────────────────────────
 
 function CopyPasteRow({ code }: { code: string }) {
+  const { t } = useTranslation('wallet');
   const [copied, setCopied] = useState(false);
   const copy = useCallback(async () => {
     await navigator.clipboard.writeText(code);
@@ -221,7 +185,7 @@ function CopyPasteRow({ code }: { code: string }) {
         {code}
       </div>
       <Button fullWidth size="sm" variant="outline" onClick={copy}>
-        {copied ? '✓ Copiado!' : 'Copiar código PIX'}
+        {copied ? t('copy_paste_row.copied') : t('copy_paste_row.copy_pix_code')}
       </Button>
     </div>
   );
@@ -245,6 +209,7 @@ interface CpfModalProps {
 }
 
 function CpfModal({ needCpf, needBirthDate, onConfirm, onClose }: CpfModalProps) {
+  const { t } = useTranslation('wallet');
   const [cpf, setCpf] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [save, setSave] = useState(false);
@@ -254,11 +219,11 @@ function CpfModal({ needCpf, needBirthDate, onConfirm, onClose }: CpfModalProps)
     e.preventDefault();
     const raw = cpf.replace(/\D/g, '');
     if (needCpf && raw.length !== 11) {
-      setError('Informe um CPF válido com 11 dígitos.');
+      setError(t('cpf_modal.cpf_invalid'));
       return;
     }
     if (needBirthDate && !birthDate) {
-      setError('Informe sua data de nascimento.');
+      setError(t('cpf_modal.birth_date_required'));
       return;
     }
     onConfirm(needCpf ? raw : undefined, needBirthDate ? birthDate : undefined, save);
@@ -276,9 +241,9 @@ function CpfModal({ needCpf, needBirthDate, onConfirm, onClose }: CpfModalProps)
         maxWidth: 380, width: '90%',
         boxShadow: 'var(--shadow-card)',
       }}>
-        <h2 style={{ fontWeight: 700, fontSize: 17, marginBottom: 8 }}>Dados obrigatórios</h2>
+        <h2 style={{ fontWeight: 700, fontSize: 17, marginBottom: 8 }}>{t('cpf_modal.title')}</h2>
         <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
-          O Asaas exige CPF e data de nascimento para gerar o pagamento PIX e validar a maioridade.
+          {t('cpf_modal.description')}
         </p>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {needCpf && (
@@ -308,12 +273,12 @@ function CpfModal({ needCpf, needBirthDate, onConfirm, onClose }: CpfModalProps)
               onChange={e => setSave(e.target.checked)}
               style={{ width: 16, height: 16 }}
             />
-            Salvar dados na minha conta (não precisar informar novamente)
+            {t('cpf_modal.save_data')}
           </label>
           {error && <p style={{ color: 'var(--color-danger)', fontSize: 12 }}>{error}</p>}
           <div style={{ display: 'flex', gap: 8 }}>
-            <Button type="button" variant="ghost" fullWidth onClick={onClose}>Cancelar</Button>
-            <Button type="submit" fullWidth>Continuar</Button>
+            <Button type="button" variant="ghost" fullWidth onClick={onClose}>{t('cpf_modal.cancel')}</Button>
+            <Button type="submit" fullWidth>{t('cpf_modal.continue')}</Button>
           </div>
         </form>
       </div>
@@ -324,6 +289,7 @@ function CpfModal({ needCpf, needBirthDate, onConfirm, onClose }: CpfModalProps)
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export function WalletPage() {
+  const { t, i18n } = useTranslation('wallet');
   const { isMobile } = useBreakpoint();
   const { user, updateUser } = useAuthStore();
   const [cpfModalPending, setCpfModalPending] = useState<number | null>(null);
@@ -404,7 +370,7 @@ export function WalletPage() {
     const socket = getGameSocket();
     const handler = (data: { valueBrl: number; balance: number }) => {
       setBalance(String(data.balance));
-      setToast(`Depósito de R$ ${data.valueBrl.toFixed(2)} confirmado! Saldo atualizado.`);
+      setToast(t('deposit_confirmed_toast', { value: data.valueBrl.toFixed(2) }));
       setTimeout(() => setToast(null), 5000);
       if (activeTab === 'history') fetchDepositList();
     };
@@ -433,7 +399,7 @@ export function WalletPage() {
       setExpandedDeposit(null);
       fetchDepositList();
     } catch (err: any) {
-      setCancelError(err?.message ?? 'Erro ao cancelar depósito');
+      setCancelError(err?.message ?? t('cancel_modal.generic_error'));
     } finally {
       setCancelLoading(false);
     }
@@ -449,7 +415,7 @@ export function WalletPage() {
       setDepositResult(result);
       setDepositCents(0);
     } catch (err: any) {
-      setDepositError(err?.message ?? 'Erro ao gerar PIX. Tente novamente.');
+      setDepositError(err?.message ?? t('deposit.generic_error'));
     } finally {
       setDepositLoading(false);
     }
@@ -459,7 +425,7 @@ export function WalletPage() {
     e.preventDefault();
     const valueBrl = depositCents / 100;
     if (depositCents < 500) {
-      setDepositError('Valor mínimo: R$ 5,00');
+      setDepositError(t('deposit.min_value_error'));
       return;
     }
     setDepositError('');
@@ -493,13 +459,13 @@ export function WalletPage() {
     e.preventDefault();
     const valueCC = parseFloat(withdrawAmount);
     if (!withdrawAmount || isNaN(valueCC) || valueCC < 10) {
-      setWithdrawError('Valor mínimo: 10 CC');
+      setWithdrawError(t('withdraw.amount_min_error'));
       return;
     }
     setWithdrawError('');
     setWithdrawMsg('');
     if (!pixKey.trim()) {
-      setWithdrawError('Cadastre uma chave PIX antes de sacar.');
+      setWithdrawError(t('withdraw.pix_key_required_error'));
       return;
     }
     setWithdrawLoading(true);
@@ -509,13 +475,12 @@ export function WalletPage() {
         { valueCC, pixKey, pixKeyType },
       );
       setWithdrawMsg(
-        `Saque de ${r.valueCC} CC solicitado! ` +
-        `Taxa: ${r.fee} CC. Você receberá R$ ${r.valueBrl.toFixed(2)} via PIX em até 30 min.`,
+        t('withdraw.success_message', { amount: r.valueCC, fee: r.fee, net: r.valueBrl.toFixed(2) }),
       );
       setWithdrawAmount('');
       fetchBalance();
     } catch (err: any) {
-      setWithdrawError(err?.message ?? 'Erro ao solicitar saque.');
+      setWithdrawError(err?.message ?? t('withdraw.generic_error'));
     } finally {
       setWithdrawLoading(false);
     }
@@ -529,9 +494,9 @@ export function WalletPage() {
     setPixKeyLoading(true);
     try {
       await api.post('/wallet/pix-key', { pixKey: pixKey.trim(), pixKeyType });
-      setPixKeyMsg('Chave PIX cadastrada com sucesso!');
+      setPixKeyMsg(t('withdraw.pix_key_saved'));
     } catch (err: any) {
-      setPixKeyError(err?.message ?? 'Erro ao cadastrar chave PIX.');
+      setPixKeyError(err?.message ?? t('withdraw.pix_key_error'));
     } finally {
       setPixKeyLoading(false);
     }
@@ -542,7 +507,7 @@ export function WalletPage() {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: isMobile ? '20px 16px' : '40px 24px' }}>
       <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, marginBottom: 20 }}>
-        Carteira
+        {t('title')}
       </h1>
 
       {toast && (
@@ -560,7 +525,7 @@ export function WalletPage() {
       {/* Balance card */}
       <Card style={{ padding: 24, marginBottom: 24, textAlign: 'center' }}>
         <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 6, letterSpacing: '0.05em', fontWeight: 600 }}>
-          SALDO DISPONÍVEL
+          {t('available_balance')}
         </div>
         <div style={{ fontSize: isMobile ? 36 : 48, fontWeight: 800, letterSpacing: '-0.02em' }}>
           <span style={{ color: 'var(--color-primary)' }}>◈</span>
@@ -568,7 +533,7 @@ export function WalletPage() {
           {balanceNum !== null ? balanceNum.toFixed(2) : '—'} <span style={{ fontSize: '0.5em', fontWeight: 600, color: 'var(--color-text-muted)' }}>CC</span>
         </div>
         <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 6 }}>
-          1 CC = R$ 1,00
+          {t('cc_parity')}
         </div>
       </Card>
 
@@ -586,7 +551,7 @@ export function WalletPage() {
               transition: 'all var(--transition)',
             }}
           >
-            {tab === 'deposit' ? 'Depositar' : tab === 'withdraw' ? 'Sacar' : tab === 'history' ? 'PIX' : 'Histórico CC'}
+            {tab === 'deposit' ? t('tab_deposit') : tab === 'withdraw' ? t('tab_withdraw') : tab === 'history' ? t('tab_history') : t('tab_cc_history')}
           </button>
         ))}
       </div>
@@ -594,16 +559,16 @@ export function WalletPage() {
       {/* Deposit tab */}
       {activeTab === 'deposit' && (
         <Card style={{ padding: 24 }}>
-          <h2 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Depositar via PIX</h2>
+          <h2 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>{t('deposit.title')}</h2>
           {!depositsEnabled && (
             <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-sm)', background: 'rgba(177,86,83,0.15)', border: '1px solid var(--color-danger)', color: 'var(--color-danger)', fontSize: 13, marginBottom: 16 }}>
-              Depósitos temporariamente indisponíveis. Tente novamente mais tarde.
+              {t('deposit.disabled_notice')}
             </div>
           )}
           <form onSubmit={handleDeposit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 6 }}>
-                Valor em R$ (mín. R$ 5,00)
+                {t('deposit.value_label')}
               </label>
               <input
                 type="text"
@@ -643,12 +608,11 @@ export function WalletPage() {
             </div>
             {depositError && <p style={{ color: 'var(--color-danger)', fontSize: 13 }}>{depositError}</p>}
             <Button type="submit" loading={depositLoading} disabled={!depositsEnabled}>
-              Gerar QR Code PIX
+              {t('deposit.generate_qr')}
             </Button>
           </form>
           <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 14, lineHeight: 1.6 }}>
-            Após o pagamento, o valor em Chess Coins será creditado automaticamente.
-            Não há taxa para depósito.
+            {t('deposit.footer_notice')}
           </p>
         </Card>
       )}
@@ -656,37 +620,37 @@ export function WalletPage() {
       {/* Withdraw tab */}
       {activeTab === 'withdraw' && (
         <Card style={{ padding: 24 }}>
-          <h2 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>Sacar via PIX</h2>
+          <h2 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16 }}>{t('withdraw.title')}</h2>
           {!withdrawalsEnabled && (
             <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-sm)', background: 'rgba(177,86,83,0.15)', border: '1px solid var(--color-danger)', color: 'var(--color-danger)', fontSize: 13, marginBottom: 16 }}>
-              Saques temporariamente indisponíveis. Tente novamente mais tarde.
+              {t('withdraw.disabled_notice')}
             </div>
           )}
 
           {/* PIX key section */}
           <div style={{ marginBottom: 24, padding: 16, background: 'var(--color-surface-2)', borderRadius: 'var(--radius-sm)' }}>
-            <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Sua chave PIX</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>{t('withdraw.pix_key_title')}</h3>
             <form onSubmit={handlePixKey} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <select
                 value={pixKeyType}
                 onChange={e => setPixKeyType(e.target.value as PixKeyType)}
                 style={{ ...inputStyle }}
               >
-                {(Object.keys(PIX_KEY_LABELS) as PixKeyType[]).map(k => (
-                  <option key={k} value={k}>{PIX_KEY_LABELS[k]}</option>
+                {(['CPF', 'EMAIL', 'PHONE', 'EVP'] as PixKeyType[]).map(k => (
+                  <option key={k} value={k}>{t(`pix_key_label.${k}`)}</option>
                 ))}
               </select>
               <input
                 type="text"
                 value={pixKey}
                 onChange={e => setPixKey(e.target.value)}
-                placeholder={pixKeyType === 'CPF' ? '000.000.000-00' : pixKeyType === 'EMAIL' ? 'email@exemplo.com' : pixKeyType === 'PHONE' ? '+5511999999999' : 'Chave EVP (UUID)'}
+                placeholder={t(`withdraw.pix_key_placeholder.${pixKeyType}`)}
                 style={inputStyle}
               />
               {pixKeyMsg && <p style={{ color: 'var(--color-success)', fontSize: 12 }}>{pixKeyMsg}</p>}
               {pixKeyError && <p style={{ color: 'var(--color-danger)', fontSize: 12 }}>{pixKeyError}</p>}
               <Button type="submit" size="sm" variant="outline" loading={pixKeyLoading}>
-                Salvar chave PIX
+                {t('withdraw.save_pix_key')}
               </Button>
             </form>
           </div>
@@ -695,7 +659,7 @@ export function WalletPage() {
           <form onSubmit={handleWithdraw} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 6 }}>
-                Valor em CC (mín. 10 CC · taxa: {withdrawalFeeDisplay.pct}%, mín. {withdrawalFeeDisplay.min} CC)
+                {t('withdraw.amount_label', { pct: withdrawalFeeDisplay.pct, min: withdrawalFeeDisplay.min })}
               </label>
               <input
                 type="number"
@@ -703,26 +667,27 @@ export function WalletPage() {
                 step="1"
                 value={withdrawAmount}
                 onChange={e => setWithdrawAmount(e.target.value)}
-                placeholder="Ex: 100"
+                placeholder={t('withdraw.amount_placeholder')}
                 style={inputStyle}
               />
               {withdrawAmount && parseFloat(withdrawAmount) >= 10 && (
                 <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 6 }}>
-                  Taxa: {Math.max(2, Math.ceil(parseFloat(withdrawAmount) * 0.02))} CC →{' '}
-                  você recebe R$ {(parseFloat(withdrawAmount) - Math.max(2, Math.ceil(parseFloat(withdrawAmount) * 0.02))).toFixed(2)}
+                  {t('withdraw.fee_preview', {
+                    fee: Math.max(2, Math.ceil(parseFloat(withdrawAmount) * 0.02)),
+                    net: (parseFloat(withdrawAmount) - Math.max(2, Math.ceil(parseFloat(withdrawAmount) * 0.02))).toFixed(2),
+                  })}
                 </p>
               )}
             </div>
             {withdrawMsg && <p style={{ color: 'var(--color-success)', fontSize: 13 }}>{withdrawMsg}</p>}
             {withdrawError && <p style={{ color: 'var(--color-danger)', fontSize: 13 }}>{withdrawError}</p>}
             <Button type="submit" loading={withdrawLoading} disabled={!withdrawalsEnabled}>
-              Solicitar saque
+              {t('withdraw.submit')}
             </Button>
           </form>
 
           <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 14, lineHeight: 1.6 }}>
-            Saques passam por análise antifraude e são processados em até 30 minutos.
-            Taxa de 2% (mínimo 2 CC).
+            {t('withdraw.footer_notice')}
           </p>
         </Card>
       )}
@@ -731,9 +696,9 @@ export function WalletPage() {
       {activeTab === 'history' && (
         <Card style={{ padding: 0, overflow: 'hidden' }}>
           {depositListLoading ? (
-            <div style={{ padding: 32, textAlign: 'center', color: 'var(--color-text-muted)' }}>Carregando...</div>
+            <div style={{ padding: 32, textAlign: 'center', color: 'var(--color-text-muted)' }}>{t('history.loading')}</div>
           ) : !depositList || depositList.items.length === 0 ? (
-            <div style={{ padding: 32, textAlign: 'center', color: 'var(--color-text-muted)' }}>Nenhum depósito ainda.</div>
+            <div style={{ padding: 32, textAlign: 'center', color: 'var(--color-text-muted)' }}>{t('history.no_deposits')}</div>
           ) : (
             <>
               {depositList.items.map((dep, i) => {
@@ -764,19 +729,19 @@ export function WalletPage() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>
-                          Depósito PIX — R$ {parseFloat(dep.valueBrl).toFixed(2)}
+                          {t('history.deposit_pix', { value: parseFloat(dep.valueBrl).toFixed(2) })}
                         </div>
                         <div style={{ fontSize: 12, marginTop: 2 }}>
                           <span style={{ color: DEPOSIT_STATUS_COLOR[dep.status], fontWeight: 500 }}>
-                            {DEPOSIT_STATUS_LABEL[dep.status]}
+                            {t(`deposit_status.${dep.status}`)}
                           </span>
                           <span style={{ color: 'var(--color-text-muted)' }}>
-                            {' · '}{new Date(dep.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                            {' · '}{new Date(dep.createdAt).toLocaleString(i18n.language === 'en' ? 'en-US' : 'pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                         {dep.status === 'PENDING' && dep.expiresAt && (
                           <div style={{ fontSize: 11, color: '#E8A838', marginTop: 2 }}>
-                            Expira às {new Date(dep.expiresAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            {t('history.expires_at', { time: new Date(dep.expiresAt).toLocaleTimeString(i18n.language === 'en' ? 'en-US' : 'pt-BR', { hour: '2-digit', minute: '2-digit' }) })}
                           </div>
                         )}
                       </div>
@@ -804,7 +769,7 @@ export function WalletPage() {
                           style={{ color: 'var(--color-danger)', borderColor: 'var(--color-danger)', width: '100%' }}
                           onClick={() => { setCancelConfirm(dep.id); setCancelError(''); }}
                         >
-                          Cancelar depósito
+                          {t('history.cancel_deposit')}
                         </Button>
                       </div>
                     )}
@@ -814,11 +779,11 @@ export function WalletPage() {
 
               {depositList.totalPages > 1 && (
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 8, padding: '12px 20px' }}>
-                  <Button size="sm" variant="ghost" disabled={depositListPage === 1} onClick={() => setDepositListPage(p => p - 1)}>← Anterior</Button>
+                  <Button size="sm" variant="ghost" disabled={depositListPage === 1} onClick={() => setDepositListPage(p => p - 1)}>{t('history.previous')}</Button>
                   <span style={{ padding: '8px 12px', fontSize: 13, color: 'var(--color-text-muted)' }}>
                     {depositListPage} / {depositList.totalPages}
                   </span>
-                  <Button size="sm" variant="ghost" disabled={depositListPage === depositList.totalPages} onClick={() => setDepositListPage(p => p + 1)}>Próxima →</Button>
+                  <Button size="sm" variant="ghost" disabled={depositListPage === depositList.totalPages} onClick={() => setDepositListPage(p => p + 1)}>{t('history.next')}</Button>
                 </div>
               )}
             </>
@@ -830,21 +795,21 @@ export function WalletPage() {
       {(activeTab as string) === 'cc_history' && (
         <Card style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
-            <h3 style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>Histórico de CC</h3>
+            <h3 style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>{t('cc_history.title')}</h3>
             <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4 }}>
-              Todas as movimentações de Chess Coins na sua conta
+              {t('cc_history.subtitle')}
             </p>
           </div>
           {txLoading ? (
-            <div style={{ padding: 32, textAlign: 'center', color: 'var(--color-text-muted)' }}>Carregando...</div>
+            <div style={{ padding: 32, textAlign: 'center', color: 'var(--color-text-muted)' }}>{t('cc_history.loading')}</div>
           ) : !txData || txData.items.length === 0 ? (
-            <div style={{ padding: 32, textAlign: 'center', color: 'var(--color-text-muted)' }}>Nenhuma movimentação ainda.</div>
+            <div style={{ padding: 32, textAlign: 'center', color: 'var(--color-text-muted)' }}>{t('cc_history.no_transactions')}</div>
           ) : (
             <>
               {txData.items.map((tx, i) => {
                 const isLast = i === txData.items.length - 1;
                 const isCredit = CC_TX_CREDIT.includes(tx.type);
-                const label = CC_TX_LABEL[tx.type] ?? tx.type;
+                const label = t(`cc_tx_label.${tx.type}`, { defaultValue: tx.type });
                 const icon = CC_TX_ICON[tx.type] ?? '◈';
                 const amount = parseInt(tx.amount, 10);
                 return (
@@ -868,9 +833,9 @@ export function WalletPage() {
                         </div>
                       )}
                       <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>
-                        {new Date(tx.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(tx.createdAt).toLocaleString(i18n.language === 'en' ? 'en-US' : 'pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         {tx.balanceAfter !== undefined && (
-                          <span> · Saldo: {parseInt(tx.balanceAfter, 10)} CC</span>
+                          <span> {t('cc_history.balance_after', { balance: parseInt(tx.balanceAfter, 10) })}</span>
                         )}
                       </div>
                     </div>
@@ -886,11 +851,11 @@ export function WalletPage() {
               })}
               {txData.totalPages > 1 && (
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 8, padding: '12px 20px' }}>
-                  <Button size="sm" variant="ghost" disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>← Anterior</Button>
+                  <Button size="sm" variant="ghost" disabled={txPage === 1} onClick={() => setTxPage(p => p - 1)}>{t('cc_history.previous')}</Button>
                   <span style={{ padding: '8px 12px', fontSize: 13, color: 'var(--color-text-muted)' }}>
                     {txPage} / {txData.totalPages}
                   </span>
-                  <Button size="sm" variant="ghost" disabled={txPage === txData.totalPages} onClick={() => setTxPage(p => p + 1)}>Próxima →</Button>
+                  <Button size="sm" variant="ghost" disabled={txPage === txData.totalPages} onClick={() => setTxPage(p => p + 1)}>{t('cc_history.next')}</Button>
                 </div>
               )}
             </>
@@ -910,22 +875,22 @@ export function WalletPage() {
             borderRadius: 'var(--radius-md)', padding: '28px 32px',
             maxWidth: 360, width: '90%', textAlign: 'center',
           }}>
-            <h2 style={{ fontWeight: 700, fontSize: 17, marginBottom: 10 }}>Cancelar depósito?</h2>
+            <h2 style={{ fontWeight: 700, fontSize: 17, marginBottom: 10 }}>{t('cancel_modal.title')}</h2>
             <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 24 }}>
-              O QR Code será invalidado e você não poderá mais efetuar o pagamento.
+              {t('cancel_modal.description')}
             </p>
             {cancelError && (
               <p style={{ color: 'var(--color-danger)', fontSize: 12, marginBottom: 12 }}>{cancelError}</p>
             )}
             <div style={{ display: 'flex', gap: 10 }}>
-              <Button variant="ghost" fullWidth onClick={() => setCancelConfirm(null)}>Voltar</Button>
+              <Button variant="ghost" fullWidth onClick={() => setCancelConfirm(null)}>{t('cancel_modal.back')}</Button>
               <Button
                 fullWidth
                 style={{ background: 'var(--color-danger)' }}
                 loading={cancelLoading}
                 onClick={() => handleCancelDeposit(cancelConfirm)}
               >
-                Confirmar cancelamento
+                {t('cancel_modal.confirm')}
               </Button>
             </div>
           </div>

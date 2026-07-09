@@ -1,0 +1,30 @@
+{
+  "difficulty": { "easy": "Fácil", "medium": "Médio", "hard": "Difícil" },
+  "tournament_type": {
+    "DUEL_FLASH": "⚡ Duelo Flash (3+2)",
+    "DUEL_GIANT": "🏔 Duelo Gigante (10+0)",
+    "USER_CREATED": "🏆 Torneio"
+  },
+  "loading": "Carregando...",
+  "no_duels_yet": "Nenhum duelo ou torneio participado ainda",
+  "see_competitions": "Ver competições",
+  "draw": "Empate",
+  "victory": "Vitória",
+  "defeat": "Derrota",
+  "report_cheating": "Denunciar trapaça",
+  "previous": "← Anterior",
+  "next": "Próxima →",
+  "title": "Histórico",
+  "tab_matches": "♟ Partidas",
+  "tab_tournaments": "🏆 Torneios",
+  "online": "Online",
+  "offline": "Offline",
+  "load_error": "Não foi possível carregar o histórico. Tente novamente.",
+  "retry": "Tentar novamente",
+  "no_matches": "Nenhuma partida jogada ainda",
+  "play_now": "Jogar agora",
+  "in_progress": "Em andamento",
+  "computer": "Computador",
+  "white": "Brancas",
+  "black": "Pretas"
+}

@@ -27,7 +27,7 @@ import { GameModule } from '../game/game.module';
       }),
       inject: [ConfigService],
     }),
-    WalletModule,
+    forwardRef(() => WalletModule),
     MatchesModule,
     NotificationsModule,
     DeepseekModule,

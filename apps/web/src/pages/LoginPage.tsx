@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth.store';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { Button } from '../components/ui/Button';
@@ -12,6 +13,7 @@ import { useState } from 'react';
 import logoSvg from '../assets/logo.svg';
 
 export function LoginPage() {
+  const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const { login, resendVerification } = useAuthStore();
   const { isMobile } = useBreakpoint();
@@ -37,15 +39,15 @@ export function LoginPage() {
       // Never surface raw backend error text (e.g. "Unauthorized") — map by status instead.
       if (err instanceof ApiError) {
         if (err.status === 429) {
-          setServerError('Muitas tentativas. Aguarde um momento e tente novamente.');
+          setServerError(t('login.too_many_attempts'));
         } else if (err.status >= 500) {
-          setServerError('Algo deu errado. Tente novamente em instantes.');
+          setServerError(t('login.something_went_wrong'));
         } else {
-          setServerError('Credenciais inválidas.');
+          setServerError(t('login.invalid_credentials'));
         }
         return;
       }
-      setServerError('Algo deu errado. Tente novamente em instantes.');
+      setServerError(t('login.something_went_wrong'));
     }
   };
 
@@ -63,18 +65,17 @@ export function LoginPage() {
           <Card glow>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 48, marginBottom: 16 }}>📬</div>
-              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Verifique seu email</h2>
+              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>{t('login.verify_email_title')}</h2>
               <p style={{ fontSize: 14, color: 'var(--color-text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
-                Enviamos um novo link de confirmação para{' '}
-                <strong style={{ color: 'var(--color-text)' }}>{verificationSentTo}</strong>.
+                {t('login.verify_email_resent', { email: verificationSentTo })}
                 <br />
-                Clique no link para ativar sua conta e depois faça login normalmente.
+                {t('login.verify_email_instructions')}
               </p>
               <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-                Não recebeu? Verifique a pasta de spam.
+                {t('login.didnt_receive')}
               </p>
               <p style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>
-                <Link to="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>Voltar ao login</Link>
+                <Link to="/" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>{t('forgot_password.back_to_login')}</Link>
               </p>
             </div>
           </Card>
@@ -97,26 +98,26 @@ export function LoginPage() {
               Mega Chess <span style={{ color: 'var(--color-primary)' }}>Online</span>
             </h1>
             <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginTop: 4 }}>
-              Xadrez online em tempo real
+              {t('login.tagline')}
             </p>
           </div>
         </div>
 
         <Card glow>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 24 }}>Entrar</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 24 }}>{t('login.title')}</h2>
           <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Input
               label="Email"
               type="email"
               placeholder="seu@email.com"
-              error={errors.email?.message}
+              error={errors.email?.message ? t(errors.email.message) : undefined}
               {...register('email')}
             />
             <Input
-              label="Senha"
+              label={t('register.password_label')}
               type="password"
               placeholder="••••••••"
-              error={errors.password?.message}
+              error={errors.password?.message ? t(errors.password.message) : undefined}
               {...register('password')}
             />
 
@@ -131,20 +132,20 @@ export function LoginPage() {
             )}
 
             <Button type="submit" loading={isSubmitting} fullWidth size="lg" style={{ marginTop: 4 }}>
-              Entrar
+              {t('login.title')}
             </Button>
           </form>
 
           <p style={{ textAlign: 'center', marginTop: 16, fontSize: 13 }}>
             <Link to="/forgot-password" style={{ color: 'var(--color-text-muted)' }}>
-              Esqueceu a senha?
+              {t('login.forgot_password')}
             </Link>
           </p>
 
           <p style={{ textAlign: 'center', marginTop: 8, fontSize: 14, color: 'var(--color-text-muted)' }}>
-            Não tem conta?{' '}
+            {t('login.no_account')}{' '}
             <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
-              Cadastrar
+              {t('login.register_link')}
             </Link>
           </p>
         </Card>

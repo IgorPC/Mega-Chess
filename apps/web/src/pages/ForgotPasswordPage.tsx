@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -10,6 +11,7 @@ import { useState } from 'react';
 import logoSvg from '../assets/logo.svg';
 
 export function ForgotPasswordPage() {
+  const { t } = useTranslation('auth');
   const [sent, setSent] = useState(false);
   const [serverError, setServerError] = useState('');
 
@@ -23,7 +25,7 @@ export function ForgotPasswordPage() {
       await api.post('/auth/forgot-password', { email: data.email });
       setSent(true);
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'Erro ao enviar email');
+      setServerError(err instanceof Error ? err.message : t('forgot_password.generic_error'));
     }
   };
 
@@ -39,7 +41,7 @@ export function ForgotPasswordPage() {
         </div>
 
         <Card glow>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Recuperar senha</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>{t('forgot_password.title')}</h2>
 
           {sent ? (
             <div>
@@ -48,16 +50,16 @@ export function ForgotPasswordPage() {
                 background: 'rgba(45,106,79,0.2)', color: '#4ade80',
                 fontSize: 14, lineHeight: 1.6, marginBottom: 20,
               }}>
-                Se esse email estiver cadastrado, você receberá um link para redefinir sua senha em breve. Verifique também a pasta de spam.
+                {t('forgot_password.sent_message')}
               </div>
               <Link to="/" style={{ color: 'var(--color-primary)', fontSize: 14 }}>
-                Voltar ao login
+                {t('forgot_password.back_to_login')}
               </Link>
             </div>
           ) : (
             <>
               <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 24, lineHeight: 1.6 }}>
-                Informe seu email e enviaremos um link para redefinir sua senha.
+                {t('forgot_password.description')}
               </p>
 
               <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -66,7 +68,7 @@ export function ForgotPasswordPage() {
                   type="email"
                   placeholder="seu@email.com"
                   autoFocus
-                  error={errors.email?.message}
+                  error={errors.email?.message ? t(errors.email.message) : undefined}
                   {...register('email')}
                 />
 
@@ -81,12 +83,12 @@ export function ForgotPasswordPage() {
                 )}
 
                 <Button type="submit" loading={isSubmitting} fullWidth size="lg">
-                  Enviar link de recuperação
+                  {t('forgot_password.submit')}
                 </Button>
               </form>
 
               <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--color-text-muted)' }}>
-                <Link to="/" style={{ color: 'var(--color-primary)' }}>Voltar ao login</Link>
+                <Link to="/" style={{ color: 'var(--color-primary)' }}>{t('forgot_password.back_to_login')}</Link>
               </p>
             </>
           )}

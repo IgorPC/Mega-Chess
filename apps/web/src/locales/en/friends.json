@@ -1,0 +1,22 @@
+{
+  "messages_load_error": "Couldn't load messages.",
+  "request_sent": "Request sent to @{{nickname}}",
+  "request_error": "Error sending request",
+  "send_message_error": "Failed to send message. Please try again.",
+  "add_friend": "Add friend",
+  "nickname_placeholder": "@nickname",
+  "sending": "Sending...",
+  "send_request": "Send request",
+  "requests": "Requests",
+  "friends": "Friends",
+  "online_count": "{{count}} online",
+  "no_friends": "No friends yet",
+  "online": "Online",
+  "offline": "Offline",
+  "back": "← Back",
+  "retry": "Try again",
+  "no_messages": "No messages yet. Say hi! 👋",
+  "message_placeholder": "Message...",
+  "send": "Send",
+  "select_friend": "Select a friend to chat with"
+}

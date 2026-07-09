@@ -1,0 +1,59 @@
+{
+  "title": "Suporte",
+  "new_ticket": "+ Novo ticket",
+  "loading": "Carregando...",
+  "no_tickets": "Nenhum ticket aberto ainda",
+  "open_ticket": "Abrir ticket de suporte",
+  "response_needed": "RESPOSTA NECESSÁRIA",
+  "updated_ago": "atualizado {{time}}",
+  "just_now": "agora",
+  "minutes_ago": "{{count}}min atrás",
+  "hours_ago": "{{count}}h atrás",
+  "days_ago": "{{count}}d atrás",
+  "previous": "← Anterior",
+  "next": "Próxima →",
+  "page_of": "{{page}} / {{total}}",
+  "status": {
+    "open": "Aberto",
+    "in_progress": "Em atendimento",
+    "waiting_user": "Aguardando você",
+    "closed": "Fechado"
+  },
+  "category": {
+    "payment": "💳 Pagamento",
+    "match": "♟ Partida",
+    "account": "👤 Conta",
+    "technical": "🔧 Técnico",
+    "other": "📝 Outro"
+  },
+  "create_modal": {
+    "title": "Novo ticket de suporte",
+    "category_label": "Categoria",
+    "title_label": "Título",
+    "title_placeholder": "Resumo do problema",
+    "description_label": "Descrição",
+    "description_placeholder": "Descreva o problema com detalhes...",
+    "generic_error": "Erro ao criar ticket",
+    "cancel": "Cancelar",
+    "submit": "Abrir ticket"
+  },
+  "detail": {
+    "back": "← Voltar",
+    "opened_on": "Aberto em {{date}}",
+    "support_label": "🎧 Suporte",
+    "you_label": "Você",
+    "uploading": "Enviando...",
+    "attach_file": "📎 Anexar arquivo",
+    "closed_notice": "Este ticket está encerrado.",
+    "open_new": "Abrir novo ticket",
+    "reply_placeholder": "Escreva sua resposta...",
+    "sending": "Enviando...",
+    "reply": "Responder",
+    "send_error": "Erro ao enviar mensagem",
+    "not_found": "Ticket não encontrado.",
+    "back_to_support": "Voltar ao suporte",
+    "file_type_not_allowed": "Tipo de arquivo não permitido. Use JPG, PNG, WEBP ou PDF.",
+    "file_too_large": "Arquivo muito grande. Limite: {{maxMb}}MB.",
+    "upload_error": "Erro no upload"
+  }
+}

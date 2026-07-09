@@ -1,0 +1,53 @@
+{
+  "queue_low": "Low",
+  "queue_medium": "Medium",
+  "queue_high": "High",
+  "duel_labels": {
+    "DUEL_FLASH": "Flash (3+2)",
+    "DUEL_GIANT": "Giant (10+0)"
+  },
+  "invite_modal": {
+    "title": "Invite friend — {{duelType}}",
+    "stake": "Stake:",
+    "each": "each ·",
+    "prize": "Prize:",
+    "loading": "Loading...",
+    "no_friends_online": "No friends online right now.",
+    "sent": "✓ Sent",
+    "invite": "Invite",
+    "cancel": "Cancel"
+  },
+  "duel_panel": {
+    "age_requirement_error": "You need to be at least 18 and have your date of birth set on your profile to join duels.",
+    "queue_join_error": "Error joining the queue.",
+    "searching_opponent": "Searching for opponent...",
+    "per_player": "per player",
+    "prize_pct": "(90% of the pot)",
+    "cancel_search": "Cancel search",
+    "mode": "Mode",
+    "stake_per_player": "Stake per player",
+    "cc": "CC",
+    "winner_prize": "Prize to winner (90%)",
+    "rules": "10% rake · Tiebreak by material → remaining time → sudden death · Post-match anti-fraud analysis",
+    "risk_warning_title": "Duels involve real financial risk.",
+    "risk_warning_body": "The {{fee}} CC stake is debited from your wallet when the match is formed and is not refundable if you lose. The Platform keeps 10% of the pot (rake) even from the winner. Only play with amounts you can afford to lose, and never share your account with anyone.",
+    "age_gate_title": "Duels require age verification.",
+    "age_gate_body_has_birthdate": "You need to be at least 18 to join duels.",
+    "age_gate_body_no_birthdate_pre": "Enter your date of birth in",
+    "age_gate_body_no_birthdate_link": "Edit Profile",
+    "age_gate_body_no_birthdate_post": "to unlock duels.",
+    "find_opponent": "♟ Find opponent",
+    "invite_friend": "👥 Invite friend"
+  },
+  "coming_soon": {
+    "title": "Tournaments coming soon",
+    "description": "We're putting the finishing touches on the community tournament module — single elimination, up to 64 players, automatic prizes and more. Stay tuned!",
+    "badge": "In development",
+    "whats_coming_title": "What's coming",
+    "whats_coming_body": "Public and private tournaments · Single elimination with 3rd place · Chess Coin entry fee · Automatic prize pool · Real-time bracket · Post-tournament anti-fraud analysis"
+  },
+  "title": "Competitions",
+  "subtitle": "1v1 duels or community-created tournaments with up to 64 players.",
+  "tab_duel": "⚡ 1v1 Duel",
+  "tab_tournaments": "🏆 Tournaments"
+}

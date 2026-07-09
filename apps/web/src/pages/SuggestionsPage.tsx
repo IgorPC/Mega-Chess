@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { api, ApiError } from '../lib/api';
 import { useAuthStore } from '../store/auth.store';
 import { Card } from '../components/ui/Card';
@@ -38,17 +40,17 @@ interface PaginatedSuggestions {
 // ── Zod schema ─────────────────────────────────────────────────────────────────
 
 const suggestionSchema = z.object({
-  title: z.string().min(10, 'Mínimo 10 caracteres').max(100, 'Máximo 100 caracteres'),
-  description: z.string().min(30, 'Mínimo 30 caracteres').max(1000, 'Máximo 1000 caracteres'),
+  title: z.string().min(10, 'validation:suggestion_title_min').max(100, 'validation:suggestion_title_max'),
+  description: z.string().min(30, 'validation:suggestion_description_min').max(1000, 'validation:suggestion_description_max'),
 });
 type SuggestionForm = z.infer<typeof suggestionSchema>;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const STATUS_LABEL: Partial<Record<SuggestionStatus, string>> = {
-  OPEN: 'Aberta',
-  COMPLETED: 'Concluída',
-  REJECTED: 'Rejeitada',
+const STATUS_KEY: Partial<Record<SuggestionStatus, string>> = {
+  OPEN: 'status.open',
+  COMPLETED: 'status.completed',
+  REJECTED: 'status.rejected',
 };
 
 const STATUS_VARIANT: Partial<Record<SuggestionStatus, 'success' | 'warning' | 'muted' | 'danger'>> = {
@@ -57,19 +59,20 @@ const STATUS_VARIANT: Partial<Record<SuggestionStatus, 'success' | 'warning' | '
   REJECTED: 'danger',
 };
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: TFunction): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'agora';
-  if (mins < 60) return `${mins}min atrás`;
+  if (mins < 1) return t('just_now');
+  if (mins < 60) return t('minutes_ago', { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h atrás`;
-  return `${Math.floor(hours / 24)}d atrás`;
+  if (hours < 24) return t('hours_ago', { count: hours });
+  return t('days_ago', { count: Math.floor(hours / 24) });
 }
 
 // ── Create modal ──────────────────────────────────────────────────────────────
 
 function CreateSuggestionModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const { t } = useTranslation('suggestions');
   const [serverError, setServerError] = useState('');
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<SuggestionForm>({
     resolver: zodResolver(suggestionSchema),
@@ -83,7 +86,7 @@ function CreateSuggestionModal({ onClose, onCreated }: { onClose: () => void; on
       await api.post('/suggestions', { title: data.title.trim(), description: data.description.trim() });
       onCreated();
     } catch (err: any) {
-      setServerError(err.message ?? 'Erro ao criar sugestão');
+      setServerError(err.message ?? t('create_modal.generic_error'));
     }
   };
 
@@ -104,24 +107,24 @@ function CreateSuggestionModal({ onClose, onCreated }: { onClose: () => void; on
         }}
         onClick={e => e.stopPropagation()}
       >
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Nova sugestão de melhoria</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>{t('create_modal.title')}</h2>
         <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <Input
-              label={`Título (${titleValue.length}/100)`}
-              placeholder="Resumo da sua sugestão"
+              label={t('create_modal.title_label', { count: titleValue.length })}
+              placeholder={t('create_modal.title_placeholder')}
               maxLength={100}
-              error={errors.title?.message}
+              error={errors.title?.message ? t(errors.title.message) : undefined}
               {...register('title')}
             />
           </div>
 
           <div>
             <label style={{ fontSize: 13, color: 'var(--color-text-muted)', display: 'block', marginBottom: 6 }}>
-              Descrição ({descValue.length}/1000)
+              {t('create_modal.description_label', { count: descValue.length })}
             </label>
             <textarea
-              placeholder="Descreva sua sugestão com detalhes..."
+              placeholder={t('create_modal.description_placeholder')}
               maxLength={1000}
               rows={6}
               style={{
@@ -134,7 +137,7 @@ function CreateSuggestionModal({ onClose, onCreated }: { onClose: () => void; on
               {...register('description')}
             />
             {errors.description && (
-              <span style={{ fontSize: 12, color: 'var(--color-danger)' }}>{errors.description.message}</span>
+              <span style={{ fontSize: 12, color: 'var(--color-danger)' }}>{t(errors.description.message as string)}</span>
             )}
           </div>
 
@@ -149,8 +152,8 @@ function CreateSuggestionModal({ onClose, onCreated }: { onClose: () => void; on
           )}
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
-            <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
-            <Button type="submit" loading={isSubmitting}>Enviar sugestão</Button>
+            <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>{t('create_modal.cancel')}</Button>
+            <Button type="submit" loading={isSubmitting}>{t('create_modal.submit')}</Button>
           </div>
         </form>
       </div>
@@ -175,6 +178,7 @@ function SuggestionCard({
   isVoting: boolean;
   feedback?: string;
 }) {
+  const { t } = useTranslation('suggestions');
   const isAuthor = suggestion.authorId === currentUserId;
   const canVote = !isAuthor && (suggestion.myVote || votesRemaining > 0) && suggestion.status === 'OPEN' && !isVoting;
 
@@ -196,7 +200,7 @@ function SuggestionCard({
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 16, transition: 'all var(--transition)',
             }}
-            title={isAuthor ? 'Não é possível votar na própria sugestão' : !canVote ? 'Limite de votos atingido' : suggestion.myVote ? 'Remover voto' : 'Votar'}
+            title={isAuthor ? t('card.cannot_vote_own') : !canVote ? t('card.vote_limit_reached') : suggestion.myVote ? t('card.remove_vote') : t('card.vote')}
           >
             ▲
           </button>
@@ -217,7 +221,7 @@ function SuggestionCard({
             <h3 style={{ fontSize: 15, fontWeight: 600, margin: 0, flex: 1 }}>{suggestion.title}</h3>
             {suggestion.status !== 'OPEN' && (
               <Badge variant={STATUS_VARIANT[suggestion.status] ?? 'muted'}>
-                {STATUS_LABEL[suggestion.status] ?? suggestion.status}
+                {STATUS_KEY[suggestion.status] ? t(STATUS_KEY[suggestion.status]!) : suggestion.status}
               </Badge>
             )}
           </div>
@@ -235,12 +239,12 @@ function SuggestionCard({
               background: 'rgba(61,74,235,0.08)', border: '1px solid rgba(61,74,235,0.2)',
               fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 8,
             }}>
-              <strong style={{ color: 'var(--color-primary)' }}>Nota da equipe:</strong> {suggestion.adminNote}
+              <strong style={{ color: 'var(--color-primary)' }}>{t('card.team_note')}</strong> {suggestion.adminNote}
             </div>
           )}
 
           <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-            por <strong style={{ color: 'var(--color-text)' }}>{suggestion.authorNickname}</strong> · {timeAgo(suggestion.createdAt)}
+            {t('card.by')} <strong style={{ color: 'var(--color-text)' }}>{suggestion.authorNickname}</strong> · {timeAgo(suggestion.createdAt, t)}
           </div>
         </div>
       </div>
@@ -251,6 +255,7 @@ function SuggestionCard({
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function SuggestionsPage() {
+  const { t } = useTranslation('suggestions');
   const { user } = useAuthStore();
   const { isMobile } = useBreakpoint();
   const [tab, setTab] = useState<'OPEN' | 'COMPLETED'>('OPEN');
@@ -288,8 +293,8 @@ export function SuggestionsPage() {
     } catch (err) {
       // 409 = user already voted on this suggestion (e.g. double-click race, stale UI)
       const message = err instanceof ApiError && err.status === 409
-        ? 'Você já votou nesta sugestão.'
-        : 'Não foi possível registrar seu voto. Tente novamente.';
+        ? t('already_voted')
+        : t('vote_error');
       setVoteFeedback({ id, message });
       setTimeout(() => setVoteFeedback(f => (f?.id === id ? null : f)), 4000);
     } finally {
@@ -311,34 +316,34 @@ export function SuggestionsPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, margin: 0 }}>Sugestões de melhoria</h1>
+          <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, margin: 0 }}>{t('title')}</h1>
           <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 4 }}>
-            Vote nas suas favoritas · {votesRemaining} voto{votesRemaining !== 1 ? 's' : ''} restante{votesRemaining !== 1 ? 's' : ''} esta semana
+            {t('vote_favorites')} · {t('votes_remaining', { count: votesRemaining })}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button id='reload-button' variant="outline" onClick={load} disabled={loading} title="Atualizar lista">
+          <Button id='reload-button' variant="outline" onClick={load} disabled={loading} title={t('refresh')}>
             {loading ? '…' : '↻'}
           </Button>
-          <Button onClick={() => setShowCreate(true)}>+ Nova sugestão</Button>
+          <Button onClick={() => setShowCreate(true)}>{t('new_suggestion')}</Button>
         </div>
       </div>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
-        {(['OPEN', 'COMPLETED'] as const).map(t => (
+        {(['OPEN', 'COMPLETED'] as const).map(tabKey => (
           <button
-            key={t}
-            onClick={() => handleTabChange(t)}
+            key={tabKey}
+            onClick={() => handleTabChange(tabKey)}
             style={{
               padding: '8px 18px', fontSize: 14, fontWeight: 600,
-              color: tab === t ? 'var(--color-primary)' : 'var(--color-text-muted)',
+              color: tab === tabKey ? 'var(--color-primary)' : 'var(--color-text-muted)',
               background: 'transparent', border: 'none', cursor: 'pointer',
-              borderBottom: tab === t ? '2px solid var(--color-primary)' : '2px solid transparent',
+              borderBottom: tab === tabKey ? '2px solid var(--color-primary)' : '2px solid transparent',
               marginBottom: -1, transition: 'all var(--transition)',
             }}
           >
-            {t === 'OPEN' ? 'Abertas' : 'Concluídas'}
+            {tabKey === 'OPEN' ? t('tab_open') : t('tab_completed')}
           </button>
         ))}
       </div>
@@ -346,16 +351,16 @@ export function SuggestionsPage() {
       {/* Content */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-muted)' }}>
-          Carregando...
+          {t('loading')}
         </div>
       ) : !data || data.items.length === 0 ? (
         <Card style={{ textAlign: 'center', padding: 48 }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>💡</div>
           <p style={{ color: 'var(--color-text-muted)', marginBottom: 20 }}>
-            {tab === 'OPEN' ? 'Nenhuma sugestão aberta ainda' : 'Nenhuma sugestão concluída'}
+            {tab === 'OPEN' ? t('no_open') : t('no_completed')}
           </p>
           {tab === 'OPEN' && (
-            <Button onClick={() => setShowCreate(true)}>Enviar sugestão</Button>
+            <Button onClick={() => setShowCreate(true)}>{t('send_suggestion')}</Button>
           )}
         </Card>
       ) : (
@@ -374,9 +379,9 @@ export function SuggestionsPage() {
 
           {data.totalPages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 20 }}>
-              <Button size="sm" variant="ghost" disabled={page === 1} onClick={() => setPage(p => p - 1)}>← Anterior</Button>
+              <Button size="sm" variant="ghost" disabled={page === 1} onClick={() => setPage(p => p - 1)}>{t('previous')}</Button>
               <span style={{ padding: '8px 12px', fontSize: 14, color: 'var(--color-text-muted)' }}>{page} / {data.totalPages}</span>
-              <Button size="sm" variant="ghost" disabled={page === data.totalPages} onClick={() => setPage(p => p + 1)}>Próxima →</Button>
+              <Button size="sm" variant="ghost" disabled={page === data.totalPages} onClick={() => setPage(p => p + 1)}>{t('next')}</Button>
             </div>
           )}
         </>

@@ -1,0 +1,30 @@
+{
+  "difficulty": { "easy": "Easy", "medium": "Medium", "hard": "Hard" },
+  "tournament_type": {
+    "DUEL_FLASH": "⚡ Flash Duel (3+2)",
+    "DUEL_GIANT": "🏔 Giant Duel (10+0)",
+    "USER_CREATED": "🏆 Tournament"
+  },
+  "loading": "Loading...",
+  "no_duels_yet": "No duels or tournaments played yet",
+  "see_competitions": "See competitions",
+  "draw": "Draw",
+  "victory": "Win",
+  "defeat": "Loss",
+  "report_cheating": "Report cheating",
+  "previous": "← Previous",
+  "next": "Next →",
+  "title": "History",
+  "tab_matches": "♟ Matches",
+  "tab_tournaments": "🏆 Tournaments",
+  "online": "Online",
+  "offline": "Offline",
+  "load_error": "Couldn't load history. Please try again.",
+  "retry": "Try again",
+  "no_matches": "No matches played yet",
+  "play_now": "Play now",
+  "in_progress": "In progress",
+  "computer": "Computer",
+  "white": "White",
+  "black": "Black"
+}

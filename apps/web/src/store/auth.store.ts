@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { api, ApiError } from '../lib/api';
+import i18n from '../i18n';
 
 interface User {
   id: string;
@@ -14,6 +15,15 @@ interface User {
   birthDate?: string | null;
   termsAcceptedAt?: string | null;
   termsVersion?: string | null;
+  locale?: 'pt' | 'en';
+}
+
+// The DB-saved preference becomes the source of truth once we know it —
+// overrides whatever localStorage/navigator detection picked before login.
+function syncLocale(user: User) {
+  if (user.locale && user.locale !== i18n.language) {
+    i18n.changeLanguage(user.locale);
+  }
 }
 
 interface AuthState {
@@ -39,6 +49,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     const user = await api.get<User>('/users/me');
+    syncLocale(user);
     set({ user });
   },
 
@@ -82,6 +93,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     try {
       const user = await api.get<User>('/users/me');
+      syncLocale(user);
       set({ user, loading: false });
     } catch {
       set({ user: null, loading: false });

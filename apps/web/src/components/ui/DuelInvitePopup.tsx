@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSocialStore, DuelInvite } from '../../store/social.store';
 import { api } from '../../lib/api';
-
-const DUEL_LABELS: Record<string, string> = {
-  DUEL_FLASH: 'Flash (3+2)',
-  DUEL_GIANT: 'Gigante (10+0)',
-};
 
 function duelPrize(fee: number) {
   return Math.floor(fee * 2 * 0.9);
 }
 
 function InviteCard({ invite }: { invite: DuelInvite }) {
+  const { t } = useTranslation('common');
   const { removeDuelInvite } = useSocialStore();
   const [loading, setLoading] = useState<'accept' | 'decline' | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(() => {
@@ -81,7 +78,7 @@ function InviteCard({ invite }: { invite: DuelInvite }) {
           fontSize: 11, fontWeight: 700, letterSpacing: '0.08em',
           color: 'var(--color-primary)', textTransform: 'uppercase',
         }}>
-          ⚔️ Duelo Ranqueado
+          {t('duel_popup.ranked_duel')}
         </div>
         <div style={{
           fontSize: 11, color: secondsLeft <= 10 ? 'var(--color-danger)' : 'var(--color-text-muted)',
@@ -105,7 +102,7 @@ function InviteCard({ invite }: { invite: DuelInvite }) {
       {/* Inviter */}
       <div style={{ fontSize: 14, marginBottom: 6 }}>
         <strong style={{ color: 'var(--color-text)' }}>@{invite.inviterNickname}</strong>
-        <span style={{ color: 'var(--color-text-muted)' }}> te desafiou</span>
+        <span style={{ color: 'var(--color-text-muted)' }}> {t('duel_popup.challenged_you')}</span>
       </div>
 
       {/* Details */}
@@ -117,15 +114,15 @@ function InviteCard({ invite }: { invite: DuelInvite }) {
         display: 'flex', flexDirection: 'column', gap: 4,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-          <span style={{ color: 'var(--color-text-muted)' }}>Modalidade</span>
-          <span style={{ fontWeight: 600 }}>{DUEL_LABELS[invite.type] ?? invite.type}</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>{t('duel_popup.mode')}</span>
+          <span style={{ fontWeight: 600 }}>{t(`duel_popup.duel_labels.${invite.type}`, { defaultValue: invite.type })}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-          <span style={{ color: 'var(--color-text-muted)' }}>Aposta</span>
-          <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>◈ {invite.entryFee} CC cada</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>{t('duel_popup.stake')}</span>
+          <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>{t('duel_popup.stake_each', { amount: invite.entryFee })}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-          <span style={{ color: 'var(--color-text-muted)' }}>Prêmio</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>{t('duel_popup.prize')}</span>
           <span style={{ fontWeight: 600, color: 'var(--color-success)' }}>◈ {duelPrize(invite.entryFee)} CC</span>
         </div>
       </div>
@@ -142,7 +139,7 @@ function InviteCard({ invite }: { invite: DuelInvite }) {
             opacity: loading ? 0.6 : 1,
           }}
         >
-          {loading === 'accept' ? '...' : 'Aceitar'}
+          {loading === 'accept' ? '...' : t('duel_popup.accept')}
         </button>
         <button
           disabled={loading !== null}
@@ -155,7 +152,7 @@ function InviteCard({ invite }: { invite: DuelInvite }) {
             opacity: loading ? 0.6 : 1,
           }}
         >
-          {loading === 'decline' ? '...' : 'Recusar'}
+          {loading === 'decline' ? '...' : t('duel_popup.decline')}
         </button>
       </div>
     </div>

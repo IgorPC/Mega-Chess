@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { Avatar } from '../components/ui/Avatar';
@@ -54,6 +55,7 @@ interface ReferralCodeData {
 }
 
 export function ProfilePage() {
+  const { t, i18n } = useTranslation('profile');
   const { nickname } = useParams<{ nickname: string }>();
   const { user } = useAuthStore();
   const { isMobile } = useBreakpoint();
@@ -107,10 +109,10 @@ export function ProfilePage() {
   useEffect(() => { loadReferrals(); }, [loadReferrals]);
 
   if (loading) {
-    return <div style={{ padding: 60, textAlign: 'center', color: 'var(--color-text-muted)' }}>Carregando...</div>;
+    return <div style={{ padding: 60, textAlign: 'center', color: 'var(--color-text-muted)' }}>{t('view.loading')}</div>;
   }
   if (!profile) {
-    return <div style={{ padding: 60, textAlign: 'center', color: 'var(--color-text-muted)' }}>Perfil não encontrado</div>;
+    return <div style={{ padding: 60, textAlign: 'center', color: 'var(--color-text-muted)' }}>{t('view.not_found')}</div>;
   }
 
   const winRate = stats?.total ? Math.round((stats.wins / stats.total) * 100) : 0;
@@ -135,15 +137,15 @@ export function ProfilePage() {
               display: 'flex', gap: isMobile ? 8 : 12, marginTop: 14,
               flexWrap: 'wrap',
             }}>
-              <StatPill label="ELO" value={profile.rating} highlight />
-              <StatPill label="Vitórias" value={stats?.wins ?? 0} />
-              <StatPill label="Derrotas" value={stats?.losses ?? 0} />
-              <StatPill label="Win Rate" value={`${winRate}%`} />
+              <StatPill label={t('view.elo')} value={profile.rating} highlight />
+              <StatPill label={t('view.wins')} value={stats?.wins ?? 0} />
+              <StatPill label={t('view.losses')} value={stats?.losses ?? 0} />
+              <StatPill label={t('view.win_rate')} value={`${winRate}%`} />
             </div>
           </div>
           {isOwn && (
             <Link to="/profile/me">
-              <Button variant="ghost" size="sm">Editar</Button>
+              <Button variant="ghost" size="sm">{t('view.edit')}</Button>
             </Link>
           )}
         </div>
@@ -169,7 +171,7 @@ export function ProfilePage() {
       {(reviews && (reviews.total > 0 || profile.reviewCount > 0)) && (
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-            <h2 style={{ fontWeight: 600 }}>Avaliações</h2>
+            <h2 style={{ fontWeight: 600 }}>{t('view.reviews')}</h2>
             {(reviews?.avgRating ?? profile.avgRating) && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ color: '#FFD700', fontSize: 18 }}>
@@ -179,7 +181,7 @@ export function ProfilePage() {
                   {(reviews?.avgRating ?? profile.avgRating ?? 0).toFixed(1)}
                 </span>
                 <span style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-                  ({reviews?.reviewCount ?? profile.reviewCount} avaliações)
+                  {t('view.review_count', { count: reviews?.reviewCount ?? profile.reviewCount })}
                 </span>
               </div>
             )}
@@ -194,7 +196,7 @@ export function ProfilePage() {
                     {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
                   </span>
                   <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginLeft: 'auto' }}>
-                    {new Date(r.createdAt).toLocaleDateString('pt-BR')}
+                    {new Date(r.createdAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'pt-BR')}
                   </span>
                 </div>
                 {r.comment && (
@@ -206,13 +208,13 @@ export function ProfilePage() {
           {reviews && reviews.totalPages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 16 }}>
               <Button size="sm" variant="ghost" disabled={reviewPage <= 1} onClick={() => setReviewPage(p => p - 1)}>
-                ← Anterior
+                {t('view.previous')}
               </Button>
               <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
                 {reviewPage}/{reviews.totalPages}
               </span>
               <Button size="sm" variant="ghost" disabled={reviewPage >= reviews.totalPages} onClick={() => setReviewPage(p => p + 1)}>
-                Próximo →
+                {t('view.next')}
               </Button>
             </div>
           )}
@@ -222,11 +224,11 @@ export function ProfilePage() {
       {/* Referrals (own profile only, feature flag) */}
       {isOwn && referralsEnabled && referralCode && (
         <Card>
-          <h2 style={{ fontWeight: 600, marginBottom: 16 }}>Indicações</h2>
+          <h2 style={{ fontWeight: 600, marginBottom: 16 }}>{t('view.referrals')}</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Referral code + copy */}
             <div style={{ padding: '14px 16px', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-sm)' }}>
-              <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>Seu código de indicação</p>
+              <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>{t('view.your_referral_code')}</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: 'monospace', fontSize: 20, fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-primary)' }}>
                   {referralCode.referralCode ?? '—'}
@@ -241,7 +243,7 @@ export function ProfilePage() {
                       setTimeout(() => setReferralCopied(false), 2000);
                     }}
                   >
-                    {referralCopied ? '✓ Copiado!' : 'Copiar link'}
+                    {referralCopied ? t('view.copied') : t('view.copy_link')}
                   </Button>
                 )}
               </div>
@@ -257,11 +259,11 @@ export function ProfilePage() {
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <div style={{ padding: '10px 16px', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-sm)', minWidth: 100 }}>
                   <div style={{ fontSize: 18, fontWeight: 700 }}>{referralData.referrals.length}<span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>/10</span></div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>Indicados</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>{t('view.referred_count')}</div>
                 </div>
                 <div style={{ padding: '10px 16px', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-sm)', minWidth: 100 }}>
                   <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary)' }}>◈ {referralData.totalEarned.toFixed(2)}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>CC ganhos</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>{t('view.cc_earned')}</div>
                 </div>
               </div>
             )}
@@ -269,14 +271,14 @@ export function ProfilePage() {
             {/* List of referrals */}
             {referralData && referralData.referrals.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 4 }}>Indicados</p>
+                <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 4 }}>{t('view.referred_count')}</p>
                 {referralData.referrals.map((r, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-sm)' }}>
                     <span style={{ fontSize: 13 }}>@{r.nickname}</span>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                       {r.totalEarned > 0 && <span style={{ fontSize: 12, color: 'var(--color-primary)' }}>+◈ {r.totalEarned.toFixed(2)}</span>}
                       <span style={{ fontSize: 11, color: r.isEligible ? 'var(--color-success, #4CAF50)' : 'var(--color-text-muted)', padding: '2px 8px', background: r.isEligible ? 'rgba(76,175,80,0.12)' : 'transparent', borderRadius: 4 }}>
-                        {r.isEligible ? 'Elegível' : 'Não elegível'}
+                        {r.isEligible ? t('view.eligible') : t('view.not_eligible')}
                       </span>
                     </div>
                   </div>
@@ -285,7 +287,7 @@ export function ProfilePage() {
             )}
 
             <p style={{ fontSize: 12, color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-              Ganhe 50% da taxa de saque de cada indicado. Limite: 10 indicados por conta.
+              {t('view.referral_explainer')}
             </p>
           </div>
         </Card>

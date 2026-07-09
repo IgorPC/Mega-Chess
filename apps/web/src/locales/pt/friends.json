@@ -1,0 +1,22 @@
+{
+  "messages_load_error": "Não foi possível carregar as mensagens.",
+  "request_sent": "Solicitação enviada para @{{nickname}}",
+  "request_error": "Erro ao enviar solicitação",
+  "send_message_error": "Falha ao enviar mensagem. Tente novamente.",
+  "add_friend": "Adicionar amigo",
+  "nickname_placeholder": "@apelido",
+  "sending": "Enviando...",
+  "send_request": "Enviar solicitação",
+  "requests": "Solicitações",
+  "friends": "Amigos",
+  "online_count": "{{count}} online",
+  "no_friends": "Nenhum amigo ainda",
+  "online": "Online",
+  "offline": "Offline",
+  "back": "← Voltar",
+  "retry": "Tentar novamente",
+  "no_messages": "Nenhuma mensagem ainda. Diga olá! 👋",
+  "message_placeholder": "Mensagem...",
+  "send": "Enviar",
+  "select_friend": "Selecione um amigo para conversar"
+}

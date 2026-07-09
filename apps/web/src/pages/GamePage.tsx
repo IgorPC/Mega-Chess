@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { useGameStore } from '../store/game.store';
@@ -25,22 +26,22 @@ interface WsTimerUpdate { seconds: number }
 interface WsClockUpdate { whiteClock: number; blackClock: number; turn: 'white' | 'black' }
 interface WsGameOver { result: string; reason: string }
 
-const REASON_LABELS: Record<string, string> = {
-  checkmate: 'Xeque-mate',
-  forfeit: 'Desistência',
-  timeout: 'Tempo esgotado',
-  stalemate: 'Afogamento',
-  threefold: 'Repetição tripla',
-  insufficient: 'Material insuficiente',
-  fifty_moves: 'Regra dos 50 lances',
-  draw: 'Empate',
+const REASON_KEYS: Record<string, string> = {
+  checkmate: 'reason.checkmate',
+  forfeit: 'reason.forfeit',
+  timeout: 'reason.timeout',
+  stalemate: 'reason.stalemate',
+  threefold: 'reason.threefold',
+  insufficient: 'reason.insufficient',
+  fifty_moves: 'reason.fifty_moves',
+  draw: 'reason.draw',
 };
 
 const PROMOTION_PIECES = [
-  { piece: 'q', label: 'Rainha', symbolW: '♕', symbolB: '♛' },
-  { piece: 'r', label: 'Torre',  symbolW: '♖', symbolB: '♜' },
-  { piece: 'b', label: 'Bispo',  symbolW: '♗', symbolB: '♝' },
-  { piece: 'n', label: 'Cavalo', symbolW: '♘', symbolB: '♞' },
+  { piece: 'q', labelKey: 'promotion.queen', symbolW: '♕', symbolB: '♛' },
+  { piece: 'r', labelKey: 'promotion.rook',  symbolW: '♖', symbolB: '♜' },
+  { piece: 'b', labelKey: 'promotion.bishop', symbolW: '♗', symbolB: '♝' },
+  { piece: 'n', labelKey: 'promotion.knight', symbolW: '♘', symbolB: '♞' },
 ];
 
 function needsPromotion(game: Chess, from: string, to: string): boolean {
@@ -54,6 +55,7 @@ function needsPromotion(game: Chess, from: string, to: string): boolean {
 const ForfeitModal = React.memo(function ForfeitModal({
   onConfirm, onCancel,
 }: { onConfirm: () => void; onCancel: () => void }) {
+  const { t } = useTranslation('game');
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 300,
@@ -68,13 +70,13 @@ const ForfeitModal = React.memo(function ForfeitModal({
         boxShadow: 'var(--shadow-card)',
       }}>
         <div style={{ fontSize: 36, marginBottom: 12 }}>⚑</div>
-        <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>Desistir da partida?</h2>
+        <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>{t('forfeit_modal.title')}</h2>
         <p style={{ color: 'var(--color-text-muted)', fontSize: 14, lineHeight: 1.5, marginBottom: 24 }}>
-          Ao desistir você perde a partida e seu oponente recebe os pontos de ELO.
+          {t('forfeit_modal.description')}
         </p>
         <div style={{ display: 'flex', gap: 10 }}>
-          <Button variant="ghost" fullWidth onClick={onCancel}>Cancelar</Button>
-          <Button variant="danger" fullWidth onClick={onConfirm}>Sim, desistir</Button>
+          <Button variant="ghost" fullWidth onClick={onCancel}>{t('forfeit_modal.cancel')}</Button>
+          <Button variant="danger" fullWidth onClick={onConfirm}>{t('forfeit_modal.confirm')}</Button>
         </div>
       </div>
     </div>
@@ -101,6 +103,7 @@ const GameOverlay = React.memo(function GameOverlay({
 });
 
 export function GamePage() {
+  const { t } = useTranslation('game');
   const { matchId } = useParams<{ matchId: string }>();
   const { user } = useAuthStore();
   const {
@@ -423,7 +426,7 @@ export function GamePage() {
             textDecoration: 'underline', cursor: 'pointer',
           }}
         >
-          ↻ Clique aqui caso o jogo não inicie ou algo esteja errado com a partida
+          {t('play.reload_hint')}
         </button>
       )}
       <PlayerBar
@@ -447,7 +450,7 @@ export function GamePage() {
           fontWeight: 600, fontSize: 13, textAlign: 'center',
           animation: 'pulse 1s infinite',
         }}>
-          ⚠ Você está em xeque!
+          {t('play.in_check')}
         </div>
       )}
 
@@ -496,12 +499,12 @@ export function GamePage() {
           disabled={status !== 'playing'}
           style={{ flex: 1 }}
         >
-          ⚑ Desistir
+          {t('play.forfeit')}
         </Button>
         <Button
           variant="ghost" size="sm"
           onClick={toggleMute}
-          title={muted ? 'Ativar sons' : 'Silenciar sons'}
+          title={muted ? t('play.unmute_sounds') : t('play.mute_sounds')}
           style={{ minWidth: 40 }}
         >
           {muted ? '🔇' : '🔊'}
@@ -512,7 +515,7 @@ export function GamePage() {
             onClick={() => setChatOpen(o => !o)}
             style={{ flex: 1 }}
           >
-            {chatOpen ? 'Fechar chat' : `💬 Chat${chatMessages.length > 0 ? ` (${chatMessages.length})` : ''}`}
+            {chatOpen ? t('play.close_chat') : (chatMessages.length > 0 ? t('play.chat_with_count', { count: chatMessages.length }) : t('play.chat'))}
           </Button>
         )}
       </div>
@@ -528,7 +531,7 @@ export function GamePage() {
       overflow: 'hidden',
       padding: 16,
     }}>
-      <h3 style={{ fontWeight: 600, fontSize: 14, marginBottom: 10, flexShrink: 0 }}>Chat da partida</h3>
+      <h3 style={{ fontWeight: 600, fontSize: 14, marginBottom: 10, flexShrink: 0 }}>{t('play.match_chat')}</h3>
       <div style={{
         flex: 1, overflowY: 'auto',
         display: 'flex', flexDirection: 'column', gap: 8,
@@ -537,7 +540,7 @@ export function GamePage() {
       }}>
         {chatMessages.length === 0 && (
           <p style={{ color: 'var(--color-text-muted)', fontSize: 12, textAlign: 'center', marginTop: 12 }}>
-            Sem mensagens ainda
+            {t('play.no_messages')}
           </p>
         )}
         {chatMessages.map(msg => (
@@ -564,7 +567,7 @@ export function GamePage() {
         <input
           value={chatInput}
           onChange={e => setChatInput(e.target.value)}
-          placeholder="Mensagem..."
+          placeholder={t('play.message_placeholder')}
           maxLength={200}
           style={{
             flex: 1, background: 'var(--color-surface-2)',
@@ -602,10 +605,10 @@ export function GamePage() {
           : myOutcome === 'loss' ? 'var(--color-danger)'
           : 'var(--color-text)',
       }}>
-        {myOutcome === 'win' ? 'Vitória!' : myOutcome === 'draw' ? 'Empate' : 'Derrota'}
+        {myOutcome === 'win' ? t('play.victory') : myOutcome === 'draw' ? t('play.draw') : t('play.defeat')}
       </div>
       <div style={{ color: 'var(--color-text-muted)', fontSize: 12, marginTop: 4 }}>
-        {REASON_LABELS[resultReason ?? ''] ?? resultReason}
+        {resultReason && REASON_KEYS[resultReason] ? t(REASON_KEYS[resultReason]) : resultReason}
       </div>
       {/* Review prompt — only for non-draw online games */}
       {myOutcome !== 'draw' && matchId && !reviewDone && (() => {
@@ -632,7 +635,7 @@ export function GamePage() {
         return (
           <div style={{ marginTop: 16, padding: '12px 14px', background: 'var(--color-surface-2)', borderRadius: 'var(--radius-sm)' }}>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>
-              Avaliar @{opponent.nickname}
+              {t('play.rate_opponent', { nickname: opponent.nickname })}
             </p>
             <div style={{ display: 'flex', gap: 6, marginBottom: 8, justifyContent: 'center' }}>
               {[1, 2, 3, 4, 5].map((n) => (
@@ -648,7 +651,7 @@ export function GamePage() {
               ))}
             </div>
             <textarea
-              placeholder="Comentário opcional..."
+              placeholder={t('play.comment_placeholder')}
               value={reviewComment}
               onChange={(e) => setReviewComment(e.target.value)}
               rows={2}
@@ -660,9 +663,9 @@ export function GamePage() {
               }}
             />
             <div style={{ display: 'flex', gap: 8 }}>
-              <Button size="sm" variant="ghost" fullWidth onClick={() => setReviewDone(true)}>Pular</Button>
+              <Button size="sm" variant="ghost" fullWidth onClick={() => setReviewDone(true)}>{t('play.skip')}</Button>
               <Button size="sm" fullWidth disabled={reviewRating === 0 || reviewSubmitting} onClick={submitReview}>
-                {reviewSubmitting ? 'Enviando...' : 'Enviar'}
+                {reviewSubmitting ? t('play.sending') : t('play.send')}
               </Button>
             </div>
           </div>
@@ -670,7 +673,7 @@ export function GamePage() {
       })()}
       {reviewDone && myOutcome !== 'draw' && (
         <p style={{ fontSize: 12, color: 'var(--color-success, #4CAF50)', marginTop: 10, textAlign: 'center' }}>
-          ✓ Avaliação registrada
+          {t('play.review_recorded')}
         </p>
       )}
       <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -679,11 +682,11 @@ export function GamePage() {
             reset();
             navigate(tournamentRedirect.isDuel ? '/history' : `/tournaments/${tournamentRedirect.tournamentId}`);
           }}>
-            {tournamentRedirect.isDuel ? 'Ver histórico' : 'Ir para o chaveamento'}
+            {tournamentRedirect.isDuel ? t('play.view_history') : t('play.go_to_bracket')}
           </Button>
         )}
         <Button fullWidth variant={tournamentRedirect ? 'ghost' : 'primary'} onClick={() => { reset(); navigate('/lobby'); }}>
-          Voltar ao lobby
+          {t('play.back_to_lobby')}
         </Button>
       </div>
     </Card>
@@ -706,9 +709,9 @@ export function GamePage() {
             maxWidth: 380, width: '90%', textAlign: 'center',
             boxShadow: 'var(--shadow-card)',
           }}>
-            <div style={{ fontSize: 22, marginBottom: 4 }}>♟ Promover peão</div>
+            <div style={{ fontSize: 22, marginBottom: 4 }}>{t('promotion.title')}</div>
             <div style={{ color: 'var(--color-text-muted)', fontSize: 13, marginBottom: 4 }}>
-              Escolha a peça para promoção
+              {t('promotion.choose_piece')}
             </div>
             {/* Timer */}
             <div style={{
@@ -735,11 +738,11 @@ export function GamePage() {
                   }}
                 >
                   <span style={{ fontSize: 30, lineHeight: 1 }}>{promoSymbol(p)}</span>
-                  <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{p.label}</span>
+                  <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{t(p.labelKey)}</span>
                 </button>
               ))}
             </div>
-            <Button fullWidth onClick={confirmPromotion}>Confirmar promoção</Button>
+            <Button fullWidth onClick={confirmPromotion}>{t('promotion.confirm')}</Button>
           </div>
         </div>
       )}
@@ -791,6 +794,7 @@ const PlayerBar = React.memo(function PlayerBar({ player, isActive, timerSeconds
   boardWidth: number;
   inCheck?: boolean;
 }) {
+  const { t } = useTranslation('game');
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 12,
@@ -811,7 +815,7 @@ const PlayerBar = React.memo(function PlayerBar({ player, isActive, timerSeconds
           {player?.nickname || '...'}
           {inCheck && (
             <span style={{ fontSize: 11, color: '#F5A623', fontWeight: 700, letterSpacing: '0.02em' }}>
-              XEQUE
+              {t('play.check')}
             </span>
           )}
         </div>

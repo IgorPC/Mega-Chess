@@ -1,0 +1,12 @@
+{
+  "title": "Ranking",
+  "top_100": "Top 100 players",
+  "your_position": "Your position",
+  "today": "Today",
+  "week": "Week",
+  "month": "Month",
+  "load_error": "Couldn't load the ranking. Please try again.",
+  "retry": "Try again",
+  "loading": "Loading...",
+  "empty": "No players ranked yet for this period."
+}

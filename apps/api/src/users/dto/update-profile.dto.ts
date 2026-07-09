@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNotEmpty, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty, MinLength, MaxLength, IsIn } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateProfileDto {
@@ -14,4 +14,8 @@ export class UpdateProfileDto {
   @IsString()
   @MaxLength(300)
   bio?: string;
+
+  @IsOptional()
+  @IsIn(['pt', 'en'])
+  locale?: 'pt' | 'en';
 }

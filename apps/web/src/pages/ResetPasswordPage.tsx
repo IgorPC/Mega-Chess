@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../lib/api';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -10,6 +11,7 @@ import { useState } from 'react';
 import logoSvg from '../assets/logo.svg';
 
 export function ResetPasswordPage() {
+  const { t } = useTranslation('auth');
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') ?? '';
   const navigate = useNavigate();
@@ -21,14 +23,14 @@ export function ResetPasswordPage() {
   });
 
   const onSubmit = async (data: ResetPasswordSchema) => {
-    if (!token) { setServerError('Link inválido. Solicite um novo.'); return; }
+    if (!token) { setServerError(t('reset_password.invalid_link')); return; }
     setServerError('');
     try {
       await api.post('/auth/reset-password', { token, newPassword: data.password });
       setDone(true);
       setTimeout(() => navigate('/'), 3000);
     } catch (err) {
-      setServerError(err instanceof ApiError ? err.message : 'Erro ao redefinir senha');
+      setServerError(err instanceof ApiError ? err.message : t('reset_password.generic_error'));
     }
   };
 
@@ -39,9 +41,9 @@ export function ResetPasswordPage() {
         background: 'var(--color-bg)', padding: 24,
       }}>
         <Card>
-          <p style={{ color: 'var(--color-danger)', marginBottom: 16 }}>Link inválido ou expirado.</p>
+          <p style={{ color: 'var(--color-danger)', marginBottom: 16 }}>{t('reset_password.invalid_or_expired')}</p>
           <Link to="/forgot-password" style={{ color: 'var(--color-primary)', fontSize: 14 }}>
-            Solicitar novo link
+            {t('reset_password.request_new_link')}
           </Link>
         </Card>
       </div>
@@ -60,7 +62,7 @@ export function ResetPasswordPage() {
         </div>
 
         <Card glow>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Nova senha</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>{t('reset_password.title')}</h2>
 
           {done ? (
             <div style={{
@@ -68,28 +70,28 @@ export function ResetPasswordPage() {
               background: 'rgba(45,106,79,0.2)', color: '#4ade80',
               fontSize: 14, lineHeight: 1.6,
             }}>
-              Senha redefinida com sucesso! Redirecionando para o login...
+              {t('reset_password.success')}
             </div>
           ) : (
             <>
               <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 24, lineHeight: 1.6 }}>
-                Mínimo 6 caracteres.
+                {t('reset_password.min_chars')}
               </p>
 
               <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <Input
-                  label="Nova senha"
+                  label={t('reset_password.new_password_label')}
                   type="password"
                   placeholder="••••••••"
                   autoFocus
-                  error={errors.password?.message}
+                  error={errors.password?.message ? t(errors.password.message) : undefined}
                   {...register('password')}
                 />
                 <Input
-                  label="Confirmar senha"
+                  label={t('reset_password.confirm_password_label')}
                   type="password"
                   placeholder="••••••••"
-                  error={errors.confirmPassword?.message}
+                  error={errors.confirmPassword?.message ? t(errors.confirmPassword.message) : undefined}
                   {...register('confirmPassword')}
                 />
 
@@ -104,7 +106,7 @@ export function ResetPasswordPage() {
                 )}
 
                 <Button type="submit" loading={isSubmitting} fullWidth size="lg">
-                  Redefinir senha
+                  {t('reset_password.submit')}
                 </Button>
               </form>
             </>

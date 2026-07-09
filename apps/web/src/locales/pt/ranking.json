@@ -1,0 +1,12 @@
+{
+  "title": "Ranking",
+  "top_100": "Top 100 jogadores",
+  "your_position": "Sua posição",
+  "today": "Hoje",
+  "week": "Semana",
+  "month": "Mês",
+  "load_error": "Não foi possível carregar o ranking. Tente novamente.",
+  "retry": "Tentar novamente",
+  "loading": "Carregando...",
+  "empty": "Nenhum jogador no ranking ainda para este período."
+}

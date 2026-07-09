@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useGameStore } from '../store/game.store';
@@ -37,9 +38,9 @@ interface Friend {
 
 const DUEL_FEES: DuelEntryFee[] = [6, 10, 20];
 
-const DUEL_LABELS: Record<DuelType, string> = {
-  DUEL_FLASH: 'Flash (3+2)',
-  DUEL_GIANT: 'Gigante (10+0)',
+const DUEL_LABEL_KEYS: Record<DuelType, string> = {
+  DUEL_FLASH: 'duel_labels.DUEL_FLASH',
+  DUEL_GIANT: 'duel_labels.DUEL_GIANT',
 };
 
 const DUEL_ICONS: Record<DuelType, string> = {
@@ -56,6 +57,7 @@ function duelPrize(fee: DuelEntryFee) {
 function InviteModal({
   duelType, entryFee, onClose,
 }: { duelType: DuelType; entryFee: DuelEntryFee; onClose: () => void }) {
+  const { t } = useTranslation('tournaments');
   const [friends,  setFriends]  = useState<Friend[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [inviting, setInviting] = useState<string | null>(null);
@@ -79,16 +81,16 @@ function InviteModal({
     <div style={overlayStyle}>
       <div style={modalStyle}>
         <h2 style={{ fontWeight: 700, fontSize: 17, marginBottom: 6 }}>
-          Convidar amigo — {DUEL_LABELS[duelType]}
+          {t('invite_modal.title', { duelType: t(DUEL_LABEL_KEYS[duelType]) })}
         </h2>
         <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-          Aposta: <strong style={{ color: 'var(--color-primary)' }}>{entryFee} CC</strong> cada ·
-          Prêmio: <strong style={{ color: 'var(--color-primary)' }}>{duelPrize(entryFee)} CC</strong>
+          {t('invite_modal.stake')} <strong style={{ color: 'var(--color-primary)' }}>{entryFee} CC</strong> {t('invite_modal.each')}
+          {' '}{t('invite_modal.prize')} <strong style={{ color: 'var(--color-primary)' }}>{duelPrize(entryFee)} CC</strong>
         </p>
         {loading ? (
-          <p style={muteCenter}>Carregando...</p>
+          <p style={muteCenter}>{t('invite_modal.loading')}</p>
         ) : friends.length === 0 ? (
-          <p style={muteCenter}>Nenhum amigo online no momento.</p>
+          <p style={muteCenter}>{t('invite_modal.no_friends_online')}</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 300, overflowY: 'auto' }}>
             {friends.map(f => (
@@ -103,15 +105,15 @@ function InviteModal({
                   <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{f.rating} ELO</div>
                 </div>
                 {invited === f.id ? (
-                  <span style={{ fontSize: 12, color: 'var(--color-success)' }}>✓ Enviado</span>
+                  <span style={{ fontSize: 12, color: 'var(--color-success)' }}>{t('invite_modal.sent')}</span>
                 ) : (
-                  <Button size="sm" loading={inviting === f.id} onClick={() => invite(f.id)}>Convidar</Button>
+                  <Button size="sm" loading={inviting === f.id} onClick={() => invite(f.id)}>{t('invite_modal.invite')}</Button>
                 )}
               </div>
             ))}
           </div>
         )}
-        <Button fullWidth variant="ghost" style={{ marginTop: 20 }} onClick={onClose}>Cancelar</Button>
+        <Button fullWidth variant="ghost" style={{ marginTop: 20 }} onClick={onClose}>{t('invite_modal.cancel')}</Button>
       </div>
     </div>
   );
@@ -125,13 +127,13 @@ function queueColor(count: number) {
   return '#22c55e';
 }
 
-function queueLabel(count: number) {
-  if (count <= 2) return 'Baixa';
-  if (count <= 8) return 'Média';
-  return 'Alta';
-}
-
 function DuelPanel() {
+  const { t } = useTranslation('tournaments');
+  const queueLabel = (count: number) => {
+    if (count <= 2) return t('queue_low');
+    if (count <= 8) return t('queue_medium');
+    return t('queue_high');
+  };
   const [duelType,  setDuelType]  = useState<DuelType>('DUEL_FLASH');
   const [entryFee,  setEntryFee]  = useState<DuelEntryFee>(6);
   const [inQueue,   setInQueue]   = useState(false);
@@ -182,7 +184,7 @@ function DuelPanel() {
   const joinQueue = useCallback(async () => {
     setError('');
     if (!isEligible) {
-      setError('Você precisa ter ao menos 18 anos e informar sua data de nascimento no perfil para participar de duelos.');
+      setError(t('duel_panel.age_requirement_error'));
       return;
     }
     setLoading(true);
@@ -196,7 +198,7 @@ function DuelPanel() {
       setInQueue(true);
       startPolling();
     } catch (e: any) {
-      setError(e?.message ?? 'Erro ao entrar na fila.');
+      setError(e?.message ?? t('duel_panel.queue_join_error'));
     } finally { setLoading(false); }
   }, [duelType, entryFee, navigateToMatch, startPolling, isEligible]);
 
@@ -210,14 +212,14 @@ function DuelPanel() {
     return (
       <Card style={{ padding: 32, textAlign: 'center' }}>
         <div style={{ fontSize: 44, marginBottom: 16, animation: 'spin 2s linear infinite', display: 'inline-block' }}>♛</div>
-        <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>Procurando adversário...</h2>
+        <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>{t('duel_panel.searching_opponent')}</h2>
         <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginBottom: 4 }}>
-          {DUEL_LABELS[duelType]} · {entryFee} CC por jogador
+          {t(DUEL_LABEL_KEYS[duelType])} · {entryFee} CC {t('duel_panel.per_player')}
         </p>
         <p style={{ color: 'var(--color-text-muted)', fontSize: 12, marginBottom: 24 }}>
-          Prêmio: <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>{duelPrize(entryFee)} CC</span> (90% do pote)
+          {t('invite_modal.prize')} <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>{duelPrize(entryFee)} CC</span> {t('duel_panel.prize_pct')}
         </p>
-        <Button variant="danger" onClick={leaveQueue}>Cancelar busca</Button>
+        <Button variant="danger" onClick={leaveQueue}>{t('duel_panel.cancel_search')}</Button>
       </Card>
     );
   }
@@ -226,19 +228,19 @@ function DuelPanel() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Type selector */}
       <Card style={{ padding: 20 }}>
-        <SectionLabel>Modalidade</SectionLabel>
+        <SectionLabel>{t('duel_panel.mode')}</SectionLabel>
         <div style={{ display: 'flex', gap: 10 }}>
-          {(['DUEL_FLASH', 'DUEL_GIANT'] as DuelType[]).map(t => {
-            const typeCount = DUEL_FEES.reduce((sum, fee) => sum + (duelSizes[`${t}:${fee}`] ?? 0), 0);
+          {(['DUEL_FLASH', 'DUEL_GIANT'] as DuelType[]).map(dt => {
+            const typeCount = DUEL_FEES.reduce((sum, fee) => sum + (duelSizes[`${dt}:${fee}`] ?? 0), 0);
             return (
-              <button key={t} onClick={() => setDuelType(t)} style={{
+              <button key={dt} onClick={() => setDuelType(dt)} style={{
                 flex: 1, padding: '14px 10px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
-                border: `2px solid ${duelType === t ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                background: duelType === t ? 'var(--color-primary-dim)' : 'var(--color-surface)',
+                border: `2px solid ${duelType === dt ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                background: duelType === dt ? 'var(--color-primary-dim)' : 'var(--color-surface)',
                 transition: 'all var(--transition)', textAlign: 'center',
               }}>
-                <div style={{ fontSize: 28, marginBottom: 6 }}>{DUEL_ICONS[t]}</div>
-                <div style={{ fontWeight: 600, fontSize: 13 }}>{DUEL_LABELS[t]}</div>
+                <div style={{ fontSize: 28, marginBottom: 6 }}>{DUEL_ICONS[dt]}</div>
+                <div style={{ fontWeight: 600, fontSize: 13 }}>{t(DUEL_LABEL_KEYS[dt])}</div>
                 <div style={{ fontSize: 11, marginTop: 5, color: queueColor(typeCount) }}>
                   ● {queueLabel(typeCount)}
                 </div>
@@ -250,7 +252,7 @@ function DuelPanel() {
 
       {/* Fee selector */}
       <Card style={{ padding: 20 }}>
-        <SectionLabel>Aposta por jogador</SectionLabel>
+        <SectionLabel>{t('duel_panel.stake_per_player')}</SectionLabel>
         <div style={{ display: 'flex', gap: 10 }}>
           {DUEL_FEES.map(fee => {
             const feeCount = duelSizes[`${duelType}:${fee}`] ?? 0;
@@ -264,7 +266,7 @@ function DuelPanel() {
                 <div style={{ fontSize: 20, fontWeight: 800 }}>
                   <span style={{ color: 'var(--color-primary)' }}>◈</span> {fee}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 3 }}>CC</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 3 }}>{t('duel_panel.cc')}</div>
                 <div style={{ fontSize: 10, marginTop: 5, color: queueColor(feeCount) }}>
                   ● {queueLabel(feeCount)}
                 </div>
@@ -277,7 +279,7 @@ function DuelPanel() {
           borderRadius: 'var(--radius-sm)', fontSize: 13,
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
-          <span style={{ color: 'var(--color-text-muted)' }}>Prêmio ao vencedor (90%)</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>{t('duel_panel.winner_prize')}</span>
           <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{duelPrize(entryFee)} CC</span>
         </div>
       </Card>
@@ -286,7 +288,7 @@ function DuelPanel() {
       <Card style={{ padding: '14px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--color-text-muted)' }}>
           <span>ℹ️</span>
-          <span>10% de rake · Desempate por material → tempo restante → dupla eliminação · Análise antifraude pós-partida</span>
+          <span>{t('duel_panel.rules')}</span>
         </div>
       </Card>
 
@@ -295,10 +297,8 @@ function DuelPanel() {
         <div style={{ display: 'flex', gap: 10 }}>
           <span style={{ fontSize: 18 }}>⚠️</span>
           <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-            <strong style={{ color: 'var(--color-danger)' }}>Duelos envolvem risco financeiro real.</strong> A aposta de{' '}
-            <strong>{entryFee} CC</strong> é debitada da sua carteira ao formar a partida e{' '}
-            <strong>não é reembolsável em caso de derrota</strong>. A Plataforma retém 10% do pote (rake) mesmo do
-            vencedor. Jogue apenas com valores que você pode perder e nunca compartilhe sua conta com terceiros.
+            <strong style={{ color: 'var(--color-danger)' }}>{t('duel_panel.risk_warning_title')}</strong>{' '}
+            {t('duel_panel.risk_warning_body', { fee: entryFee })}
           </div>
         </div>
       </Card>
@@ -308,10 +308,10 @@ function DuelPanel() {
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <span style={{ fontSize: 18 }}>🔒</span>
             <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-              <strong style={{ color: 'var(--color-danger)' }}>Duelos exigem confirmação de maioridade.</strong>{' '}
+              <strong style={{ color: 'var(--color-danger)' }}>{t('duel_panel.age_gate_title')}</strong>{' '}
               {user?.birthDate
-                ? 'Você precisa ter ao menos 18 anos para participar de duelos.'
-                : <>Informe sua data de nascimento em <a href="/profile/me" style={{ color: 'var(--color-primary)' }}>Editar Perfil</a> para liberar os duelos.</>}
+                ? t('duel_panel.age_gate_body_has_birthdate')
+                : <>{t('duel_panel.age_gate_body_no_birthdate_pre')} <a href="/profile/me" style={{ color: 'var(--color-primary)' }}>{t('duel_panel.age_gate_body_no_birthdate_link')}</a> {t('duel_panel.age_gate_body_no_birthdate_post')}</>}
             </div>
           </div>
         </Card>
@@ -320,8 +320,8 @@ function DuelPanel() {
       {error && <p style={{ color: 'var(--color-danger)', fontSize: 13 }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: 10 }}>
-        <Button fullWidth loading={loading} disabled={!isEligible} onClick={joinQueue}>♟ Buscar adversário</Button>
-        <Button fullWidth variant="outline" disabled={!isEligible} onClick={() => setShowInvite(true)}>👥 Convidar amigo</Button>
+        <Button fullWidth loading={loading} disabled={!isEligible} onClick={joinQueue}>{t('duel_panel.find_opponent')}</Button>
+        <Button fullWidth variant="outline" disabled={!isEligible} onClick={() => setShowInvite(true)}>{t('duel_panel.invite_friend')}</Button>
       </div>
 
       {showInvite && (
@@ -334,13 +334,13 @@ function DuelPanel() {
 // ─── Coming Soon Panel ────────────────────────────────────────────────────────
 
 function TournamentsComingSoonPanel() {
+  const { t } = useTranslation('tournaments');
   return (
     <Card style={{ padding: '48px 32px', textAlign: 'center' }}>
       <div style={{ fontSize: 56, marginBottom: 20 }}>🏆</div>
-      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Torneios em breve</h2>
+      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 10 }}>{t('coming_soon.title')}</h2>
       <p style={{ fontSize: 14, color: 'var(--color-text-muted)', maxWidth: 380, margin: '0 auto 24px', lineHeight: 1.7 }}>
-        Estamos finalizando o módulo de torneios da comunidade — eliminação simples, até 64 jogadores,
-        prêmios automáticos e muito mais. Fique de olho!
+        {t('coming_soon.description')}
       </p>
       <div style={{
         display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -349,16 +349,15 @@ function TournamentsComingSoonPanel() {
         border: '1px solid var(--color-primary)',
         fontSize: 13, color: 'var(--color-primary)', fontWeight: 600,
       }}>
-        Em desenvolvimento
+        {t('coming_soon.badge')}
       </div>
       <div style={{
         marginTop: 32, padding: '14px 18px',
         background: 'var(--color-surface-2)', borderRadius: 'var(--radius-md)',
         fontSize: 12, color: 'var(--color-text-muted)', lineHeight: 1.7, textAlign: 'left',
       }}>
-        <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: 6 }}>O que está por vir</strong>
-        Torneios públicos e privados · Eliminação simples com 3º lugar · Taxa de entrada em Chess Coins ·
-        Pote de prêmios automático · Chaveamento em tempo real · Análise antifraude pós-torneio
+        <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: 6 }}>{t('coming_soon.whats_coming_title')}</strong>
+        {t('coming_soon.whats_coming_body')}
       </div>
     </Card>
   );
@@ -377,14 +376,15 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export function TournamentsPage() {
+  const { t } = useTranslation('tournaments');
   const { isMobile } = useBreakpoint();
   const [tab, setTab] = useState<'duel' | 'tournament'>('duel');
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: isMobile ? '20px 16px' : '40px 24px' }}>
-      <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, marginBottom: 6 }}>Competições</h1>
+      <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, marginBottom: 6 }}>{t('title')}</h1>
       <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 24 }}>
-        Duelos 1v1 ou torneios de até 64 jogadores criados pela comunidade.
+        {t('subtitle')}
       </p>
 
       {/* Tab bar */}
@@ -393,10 +393,10 @@ export function TournamentsPage() {
         background: 'var(--color-surface)', borderRadius: 'var(--radius-sm)', padding: 4,
       }}>
         <button onClick={() => setTab('duel')} style={tabStyle(tab === 'duel')}>
-          ⚡ Duelo 1v1
+          {t('tab_duel')}
         </button>
         <button onClick={() => setTab('tournament')} style={tabStyle(tab === 'tournament')}>
-          🏆 Torneios
+          {t('tab_tournaments')}
         </button>
       </div>
 

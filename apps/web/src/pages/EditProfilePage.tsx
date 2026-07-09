@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth.store';
 import { api, ApiError } from '../lib/api';
 import { Button } from '../components/ui/Button';
@@ -31,6 +32,7 @@ interface DeleteAccountModalProps {
 }
 
 function DeleteAccountModal({ step, balance, loading, error, onConfirm, onClose }: DeleteAccountModalProps) {
+  const { t } = useTranslation('profile');
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 400,
@@ -44,13 +46,12 @@ function DeleteAccountModal({ step, balance, loading, error, onConfirm, onClose 
         boxShadow: 'var(--shadow-card)',
       }}>
         <h2 style={{ fontWeight: 700, fontSize: 17, marginBottom: 8 }}>
-          {step === 'balance' ? 'Você possui saldo em conta' : 'Excluir conta'}
+          {step === 'balance' ? t('edit.delete_modal.has_balance_title') : t('edit.delete_modal.delete_title')}
         </h2>
 
         {step === 'confirm' && (
           <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
-            Essa ação é permanente. Seus dados pessoais serão removidos e você perderá acesso à conta.
-            Não será possível desfazer essa operação.
+            {t('edit.delete_modal.confirm_body')}
           </p>
         )}
 
@@ -60,11 +61,10 @@ function DeleteAccountModal({ step, balance, loading, error, onConfirm, onClose 
               padding: '10px 14px', borderRadius: 'var(--radius-sm)', marginBottom: 16,
               background: 'var(--color-danger-dim)', color: 'var(--color-danger)', fontSize: 13, lineHeight: 1.6,
             }}>
-              Você possui <strong>R$ {balance.toFixed(2)}</strong> de saldo em sua carteira.
-              Ao excluir sua conta, esse saldo será <strong>perdido permanentemente</strong> — saque antes de continuar.
+              {t('edit.delete_modal.balance_warning', { balance: balance.toFixed(2) })}
             </div>
             <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
-              Tem certeza que deseja excluir sua conta e abrir mão desse saldo?
+              {t('edit.delete_modal.balance_confirm')}
             </p>
           </>
         )}
@@ -72,7 +72,7 @@ function DeleteAccountModal({ step, balance, loading, error, onConfirm, onClose 
         {error && <p style={{ color: 'var(--color-danger)', fontSize: 12, marginBottom: 12 }}>{error}</p>}
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button type="button" variant="ghost" fullWidth onClick={onClose}>Cancelar</Button>
+          <Button type="button" variant="ghost" fullWidth onClick={onClose}>{t('edit.delete_modal.cancel')}</Button>
           <Button
             type="button"
             fullWidth
@@ -80,7 +80,7 @@ function DeleteAccountModal({ step, balance, loading, error, onConfirm, onClose 
             style={{ background: 'var(--color-danger)' }}
             onClick={onConfirm}
           >
-            {step === 'balance' ? 'Excluir mesmo assim e perder saldo' : 'Excluir minha conta'}
+            {step === 'balance' ? t('edit.delete_modal.delete_anyway') : t('edit.delete_modal.delete_account')}
           </Button>
         </div>
       </div>
@@ -89,6 +89,7 @@ function DeleteAccountModal({ step, balance, loading, error, onConfirm, onClose 
 }
 
 export function EditProfilePage() {
+  const { t } = useTranslation('profile');
   const { user, updateUser, deleteAccount } = useAuthStore();
   const navigate = useNavigate();
 
@@ -139,7 +140,7 @@ export function EditProfilePage() {
     e.preventDefault();
     const rawCpf = cpf.replace(/\D/g, '');
     if (rawCpf && rawCpf.length !== 11) {
-      setBillingError('CPF inválido. Informe os 11 dígitos.');
+      setBillingError(t('edit.cpf_invalid'));
       return;
     }
     setBillingSaving(true);
@@ -154,7 +155,7 @@ export function EditProfilePage() {
       updateUser(updated as any);
       setBillingSuccess(true);
     } catch (err: unknown) {
-      setBillingError(err instanceof Error ? err.message : 'Erro ao salvar dados de cobrança');
+      setBillingError(err instanceof Error ? err.message : t('edit.billing_generic_error'));
     } finally {
       setBillingSaving(false);
     }
@@ -171,7 +172,7 @@ export function EditProfilePage() {
         setDeleteBalance(err.data?.balance ?? 0);
         setDeleteStep('balance');
       } else {
-        setDeleteError(err instanceof Error ? err.message : 'Erro ao excluir conta. Tente novamente.');
+        setDeleteError(err instanceof Error ? err.message : t('edit.delete_generic_error'));
       }
     } finally {
       setDeleteLoading(false);
@@ -183,13 +184,13 @@ export function EditProfilePage() {
     if (!file) return;
 
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      setAvatarError('Formato inválido. Use JPG, PNG ou WEBP.');
+      setAvatarError(t('edit.avatar_invalid_format'));
       e.target.value = '';
       return;
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setAvatarError('Arquivo muito grande. Máximo 2 MB.');
+      setAvatarError(t('edit.avatar_too_large'));
       e.target.value = '';
       return;
     }
@@ -201,7 +202,7 @@ export function EditProfilePage() {
       const result = await api.upload<{ avatarUrl: string }>('/users/me/avatar', form);
       updateUser({ avatarUrl: result.avatarUrl });
     } catch {
-      setAvatarError('Erro ao enviar foto. Tente novamente.');
+      setAvatarError(t('edit.avatar_upload_error'));
     } finally {
       e.target.value = '';
     }
@@ -209,17 +210,17 @@ export function EditProfilePage() {
 
   return (
     <div style={{ maxWidth: 520, margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: 28 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Editar Perfil</h1>
+      <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{t('edit.title')}</h1>
 
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
           <Avatar src={user?.avatarUrl} name={user?.nickname} size={72} />
           <div>
             <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()}>
-              Trocar foto
+              {t('edit.change_photo')}
             </Button>
             <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 6 }}>
-              JPG, PNG ou WEBP · máx 2 MB
+              {t('edit.photo_hint')}
             </p>
             <input
               ref={fileRef}
@@ -233,23 +234,23 @@ export function EditProfilePage() {
 
         <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input
-            label="Nome completo"
-            error={errors.name?.message}
+            label={t('edit.name_label')}
+            error={errors.name?.message ? t(errors.name.message) : undefined}
             {...register('name')}
           />
 
           <Input
-            label="Apelido (nickname)"
-            error={errors.nickname?.message}
+            label={t('edit.nickname_label')}
+            error={errors.nickname?.message ? t(errors.nickname.message) : undefined}
             {...register('nickname')}
           />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-muted)' }}>Bio</label>
+            <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-muted)' }}>{t('edit.bio_label')}</label>
             <textarea
               maxLength={200}
               rows={3}
-              placeholder="Fale um pouco sobre você..."
+              placeholder={t('edit.bio_placeholder')}
               style={{
                 background: 'var(--color-surface-3)',
                 border: errors.bio ? '1.5px solid var(--color-danger)' : '1.5px solid var(--color-border)',
@@ -265,7 +266,7 @@ export function EditProfilePage() {
             <span style={{ fontSize: 11, color: 'var(--color-text-dim)', textAlign: 'right' }}>
               {bioValue.length}/200
             </span>
-            {errors.bio && <span style={{ fontSize: 12, color: 'var(--color-danger)' }}>{errors.bio.message}</span>}
+            {errors.bio && <span style={{ fontSize: 12, color: 'var(--color-danger)' }}>{t(errors.bio.message as string)}</span>}
           </div>
 
           {avatarError && (
@@ -281,25 +282,25 @@ export function EditProfilePage() {
               padding: '10px 14px', borderRadius: 'var(--radius-sm)',
               background: 'var(--color-success-dim)', color: 'var(--color-success)', fontSize: 13,
             }}>
-              Perfil atualizado com sucesso!
+              {t('edit.success')}
             </div>
           )}
 
           <Button type="submit" loading={isSubmitting} fullWidth>
-            Salvar alterações
+            {t('edit.save')}
           </Button>
         </form>
       </Card>
 
       <Card>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>Informações de Cobrança</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>{t('edit.billing_title')}</h2>
         <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-          Usadas ao gerar depósitos via PIX. CPF não é obrigatório aqui, mas será solicitado ao gerar o primeiro pagamento.
+          {t('edit.billing_subtitle')}
         </p>
 
         <form onSubmit={handleBillingSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input
-            label="Nome completo (para cobrança) — opcional"
+            label={t('edit.billing_name_label')}
             value={billingName}
             onChange={e => setBillingName(e.target.value)}
             maxLength={120}
@@ -307,14 +308,14 @@ export function EditProfilePage() {
           />
 
           <Input
-            label="Data de nascimento — opcional"
+            label={t('edit.birth_date_label')}
             type="date"
             value={birthDate}
             onChange={e => setBirthDate(e.target.value)}
           />
 
           <Input
-            label="CPF — opcional"
+            label={t('edit.cpf_label')}
             value={cpf}
             onChange={e => setCpf(formatCpf(e.target.value))}
             placeholder="000.000.000-00"
@@ -335,20 +336,20 @@ export function EditProfilePage() {
               padding: '10px 14px', borderRadius: 'var(--radius-sm)',
               background: 'var(--color-success-dim)', color: 'var(--color-success)', fontSize: 13,
             }}>
-              Dados de cobrança salvos!
+              {t('edit.billing_success')}
             </div>
           )}
 
           <Button type="submit" loading={billingSaving} fullWidth variant="outline">
-            Salvar dados de cobrança
+            {t('edit.save_billing')}
           </Button>
         </form>
       </Card>
 
       <Card style={{ border: '1px solid var(--color-danger)' }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: 'var(--color-danger)' }}>Zona de perigo</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: 'var(--color-danger)' }}>{t('edit.danger_zone')}</h2>
         <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-          Excluir sua conta é uma ação permanente. Seus dados pessoais serão apagados e você não poderá mais acessar a plataforma com esse login.
+          {t('edit.danger_zone_description')}
         </p>
         <Button
           type="button"
@@ -357,7 +358,7 @@ export function EditProfilePage() {
           style={{ borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}
           onClick={() => { setDeleteStep('confirm'); setDeleteError(''); setDeleteModalOpen(true); }}
         >
-          Excluir minha conta
+          {t('edit.delete_account')}
         </Button>
       </Card>
 

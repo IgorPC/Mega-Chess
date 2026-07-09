@@ -1,0 +1,63 @@
+{
+  "just_now": "just now",
+  "minutes_ago": "{{count}}min ago",
+  "hours_ago": "{{count}}h ago",
+  "days_ago": "{{count}}d ago",
+  "duel_labels": {
+    "DUEL_FLASH": "Flash (3+2)",
+    "DUEL_GIANT": "Giant (10+0)"
+  },
+  "friend_request": {
+    "title": "Friend request",
+    "wants_to_be_friend": "wants to be your friend",
+    "accepted": "✓ Friendship accepted!",
+    "declined": "Request declined",
+    "accept": "Accept",
+    "decline": "Decline"
+  },
+  "duel_invite": {
+    "title": "Ranked Duel Invite",
+    "expired_badge": "Expired",
+    "challenged_you": "challenged you",
+    "prize": "Prize:",
+    "match_starting": "♟ Match starting...",
+    "declined": "Invite declined",
+    "expired_message": "This invite has expired",
+    "accept": "Accept",
+    "decline": "Decline"
+  },
+  "challenge": {
+    "title": "Match challenge",
+    "challenged_you": "challenged you",
+    "match_starting": "♟ Match starting...",
+    "declined": "Challenge declined",
+    "accept": "Accept",
+    "decline": "Decline"
+  },
+  "message": {
+    "title": "New message",
+    "someone": "someone",
+    "sent_message": "sent you a message"
+  },
+  "match_report": {
+    "title": "Analysis result",
+    "clean": "✓ Clean",
+    "suspicious": "⚠ Suspicious",
+    "cheating": "🚫 Cheating detected"
+  },
+  "account_suspended": {
+    "title": "Account suspended"
+  },
+  "generic": {
+    "FRIEND_ACCEPTED": "Friendship accepted",
+    "GAME_STARTED": "Match started",
+    "ADMIN_MESSAGE": "Message from admin",
+    "MAINTENANCE_ALERT": "Maintenance notice"
+  },
+  "title": "Notifications",
+  "unread_count_one": "{{count}} unread",
+  "unread_count_other": "{{count}} unread",
+  "mark_all_read": "Mark all as read",
+  "loading": "Loading...",
+  "empty": "No notifications yet"
+}

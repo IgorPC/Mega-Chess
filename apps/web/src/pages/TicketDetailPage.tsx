@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -34,11 +35,11 @@ interface Ticket {
   messages: Message[];
 }
 
-const STATUS_LABELS: Record<TicketStatus, string> = {
-  OPEN: 'Aberto',
-  IN_PROGRESS: 'Em atendimento',
-  WAITING_USER: 'Aguardando você',
-  CLOSED: 'Fechado',
+const STATUS_KEYS: Record<TicketStatus, string> = {
+  OPEN: 'status.open',
+  IN_PROGRESS: 'status.in_progress',
+  WAITING_USER: 'status.waiting_user',
+  CLOSED: 'status.closed',
 };
 
 const STATUS_VARIANT: Record<TicketStatus, 'success' | 'warning' | 'muted' | 'danger'> = {
@@ -57,8 +58,8 @@ function isSafeFile(file: File): boolean {
   return ALLOWED_TYPES.includes(file.type) && ALLOWED_EXTENSIONS.includes(ext);
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleString('pt-BR', {
+function formatDate(dateStr: string, locale: string) {
+  return new Date(dateStr).toLocaleString(locale === 'en' ? 'en-US' : 'pt-BR', {
     day: '2-digit', month: '2-digit', year: '2-digit',
     hour: '2-digit', minute: '2-digit',
   });
@@ -93,6 +94,7 @@ function AttachmentChip({ attachment, ticketId, messageId }: {
 }
 
 export function TicketDetailPage() {
+  const { t, i18n } = useTranslation('support');
   const { ticketId } = useParams<{ ticketId: string }>();
   const navigate = useNavigate();
   const { isMobile } = useBreakpoint();
@@ -130,7 +132,7 @@ export function TicketDetailPage() {
       setReply('');
       load();
     } catch (err: any) {
-      setSendError(err.message ?? 'Erro ao enviar mensagem');
+      setSendError(err.message ?? t('detail.send_error'));
     } finally {
       setSending(false);
     }
@@ -138,11 +140,11 @@ export function TicketDetailPage() {
 
   const handleFileUpload = async (messageId: string, file: File) => {
     if (!isSafeFile(file)) {
-      alert('Tipo de arquivo não permitido. Use JPG, PNG, WEBP ou PDF.');
+      alert(t('detail.file_type_not_allowed'));
       return;
     }
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      alert(`Arquivo muito grande. Limite: ${MAX_SIZE_MB}MB.`);
+      alert(t('detail.file_too_large', { maxMb: MAX_SIZE_MB }));
       return;
     }
     setUploadingFor(messageId);
@@ -152,7 +154,7 @@ export function TicketDetailPage() {
       await api.upload(`/support/tickets/${ticketId}/messages/${messageId}/attachments`, form);
       load();
     } catch (err: any) {
-      alert(err.message ?? 'Erro no upload');
+      alert(err.message ?? t('detail.upload_error'));
     } finally {
       setUploadingFor(null);
     }
@@ -161,7 +163,7 @@ export function TicketDetailPage() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--color-text-muted)' }}>
-        Carregando...
+        {t('loading')}
       </div>
     );
   }
@@ -169,8 +171,8 @@ export function TicketDetailPage() {
   if (!ticket) {
     return (
       <div style={{ maxWidth: 640, margin: '0 auto', padding: 40, textAlign: 'center' }}>
-        <p style={{ color: 'var(--color-text-muted)', marginBottom: 16 }}>Ticket não encontrado.</p>
-        <Button onClick={() => navigate('/support')}>Voltar ao suporte</Button>
+        <p style={{ color: 'var(--color-text-muted)', marginBottom: 16 }}>{t('detail.not_found')}</p>
+        <Button onClick={() => navigate('/support')}>{t('detail.back_to_support')}</Button>
       </div>
     );
   }
@@ -189,7 +191,7 @@ export function TicketDetailPage() {
           display: 'flex', alignItems: 'center', gap: 4,
         }}
       >
-        ← Voltar
+        {t('detail.back')}
       </button>
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24 }}>
@@ -198,10 +200,10 @@ export function TicketDetailPage() {
             {ticket.title}
           </h1>
           <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-            Aberto em {formatDate(ticket.createdAt)}
+            {t('detail.opened_on', { date: formatDate(ticket.createdAt, i18n.language) })}
           </div>
         </div>
-        <Badge variant={STATUS_VARIANT[ticket.status]}>{STATUS_LABELS[ticket.status]}</Badge>
+        <Badge variant={STATUS_VARIANT[ticket.status]}>{t(STATUS_KEYS[ticket.status])}</Badge>
       </div>
 
       {/* Messages */}
@@ -223,7 +225,7 @@ export function TicketDetailPage() {
                 border: isAdmin ? '1px solid var(--color-border)' : 'none',
               }}>
                 <div style={{ fontSize: 11, color: isAdmin ? 'var(--color-text-muted)' : 'rgba(255,255,255,0.7)', marginBottom: 4 }}>
-                  {isAdmin ? '🎧 Suporte' : 'Você'} · {formatDate(msg.createdAt)}
+                  {isAdmin ? t('detail.support_label') : t('detail.you_label')} · {formatDate(msg.createdAt, i18n.language)}
                 </div>
                 <div style={{ fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
                   {msg.content}
@@ -251,7 +253,7 @@ export function TicketDetailPage() {
                     display: 'flex', alignItems: 'center', gap: 4,
                   }}
                 >
-                  {uploadingFor === msg.id ? 'Enviando...' : '📎 Anexar arquivo'}
+                  {uploadingFor === msg.id ? t('detail.uploading') : t('detail.attach_file')}
                 </button>
               )}
             </div>
@@ -264,10 +266,10 @@ export function TicketDetailPage() {
       {isClosed ? (
         <Card style={{ textAlign: 'center', padding: 24 }}>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
-            Este ticket está encerrado.
+            {t('detail.closed_notice')}
           </p>
           <Button style={{ marginTop: 12 }} onClick={() => navigate('/support')}>
-            Abrir novo ticket
+            {t('detail.open_new')}
           </Button>
         </Card>
       ) : (
@@ -275,7 +277,7 @@ export function TicketDetailPage() {
           <textarea
             value={reply}
             onChange={e => setReply(e.target.value)}
-            placeholder="Escreva sua resposta..."
+            placeholder={t('detail.reply_placeholder')}
             rows={4}
             maxLength={5000}
             style={{
@@ -291,7 +293,7 @@ export function TicketDetailPage() {
           )}
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button type="submit" disabled={sending || !reply.trim()}>
-              {sending ? 'Enviando...' : 'Responder'}
+              {sending ? t('detail.sending') : t('detail.reply')}
             </Button>
           </div>
         </form>

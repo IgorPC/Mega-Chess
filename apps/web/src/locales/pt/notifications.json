@@ -1,0 +1,63 @@
+{
+  "just_now": "agora",
+  "minutes_ago": "{{count}}min atrás",
+  "hours_ago": "{{count}}h atrás",
+  "days_ago": "{{count}}d atrás",
+  "duel_labels": {
+    "DUEL_FLASH": "Flash (3+2)",
+    "DUEL_GIANT": "Gigante (10+0)"
+  },
+  "friend_request": {
+    "title": "Solicitação de amizade",
+    "wants_to_be_friend": "quer ser seu amigo",
+    "accepted": "✓ Amizade aceita!",
+    "declined": "Solicitação recusada",
+    "accept": "Aceitar",
+    "decline": "Recusar"
+  },
+  "duel_invite": {
+    "title": "Convite de Duelo Ranqueado",
+    "expired_badge": "Expirado",
+    "challenged_you": "te desafiou",
+    "prize": "Prêmio:",
+    "match_starting": "♟ Partida iniciando...",
+    "declined": "Convite recusado",
+    "expired_message": "Este convite expirou",
+    "accept": "Aceitar",
+    "decline": "Recusar"
+  },
+  "challenge": {
+    "title": "Desafio de partida",
+    "challenged_you": "te desafiou",
+    "match_starting": "♟ Partida iniciando...",
+    "declined": "Desafio recusado",
+    "accept": "Aceitar",
+    "decline": "Recusar"
+  },
+  "message": {
+    "title": "Nova mensagem",
+    "someone": "alguém",
+    "sent_message": "enviou uma mensagem"
+  },
+  "match_report": {
+    "title": "Resultado da análise",
+    "clean": "✓ Limpo",
+    "suspicious": "⚠ Suspeito",
+    "cheating": "🚫 Trapaça detectada"
+  },
+  "account_suspended": {
+    "title": "Conta suspensa"
+  },
+  "generic": {
+    "FRIEND_ACCEPTED": "Amizade aceita",
+    "GAME_STARTED": "Partida iniciada",
+    "ADMIN_MESSAGE": "Mensagem da administração",
+    "MAINTENANCE_ALERT": "Aviso de manutenção"
+  },
+  "title": "Notificações",
+  "unread_count_one": "{{count}} não lida",
+  "unread_count_other": "{{count}} não lidas",
+  "mark_all_read": "Marcar todas como lidas",
+  "loading": "Carregando...",
+  "empty": "Nenhuma notificação ainda"
+}

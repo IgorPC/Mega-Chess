@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/auth.store';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -16,6 +17,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function TermsPage() {
+  const { t } = useTranslation('terms');
   const { acceptTerms, logout } = useAuthStore();
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,7 +30,7 @@ export function TermsPage() {
     try {
       await acceptTerms();
     } catch {
-      setError('Erro ao registrar aceite. Tente novamente.');
+      setError(t('accept_error'));
     } finally {
       setLoading(false);
     }
@@ -37,9 +39,9 @@ export function TermsPage() {
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Termos de Uso e Política de Privacidade</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{t('page_title')}</h1>
         <p style={{ fontSize: 13, color: 'var(--color-text-dim)', marginTop: 4 }}>
-          Versão {TERMS_VERSION} · Para continuar usando a Mega Chess Online, leia e aceite os termos abaixo.
+          {t('version_notice', { version: TERMS_VERSION })}
         </p>
       </div>
 
@@ -211,17 +213,17 @@ export function TermsPage() {
           onChange={e => setChecked(e.target.checked)}
           style={{ width: 18, height: 18, marginTop: 1, flexShrink: 0 }}
         />
-        Li e concordo com os Termos de Uso e a Política de Privacidade descritos acima.
+        {t('checkbox_label')}
       </label>
 
       {error && <p style={{ color: 'var(--color-danger)', fontSize: 13 }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: 10 }}>
         <Button type="button" variant="ghost" onClick={() => logout()}>
-          Sair da conta
+          {t('logout')}
         </Button>
         <Button type="button" fullWidth disabled={!checked} loading={loading} onClick={handleAccept}>
-          Aceitar e continuar
+          {t('accept_and_continue')}
         </Button>
       </div>
     </div>

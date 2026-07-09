@@ -102,6 +102,9 @@ export class User {
   @Column({ name: 'bot_difficulty', nullable: true, type: 'varchar', length: 10 })
   botDifficulty: 'EASY' | 'MEDIUM' | 'HARD' | null;
 
+  @Column({ type: 'varchar', length: 2, default: 'pt' })
+  locale: 'pt' | 'en';
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

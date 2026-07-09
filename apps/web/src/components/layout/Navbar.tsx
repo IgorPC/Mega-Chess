@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import { useSocialStore } from '../../store/social.store';
@@ -7,19 +8,21 @@ import { useSound } from '../../hooks/useSound';
 import { Avatar } from '../ui/Avatar';
 import { api } from '../../lib/api';
 import { getGameSocket } from '../../lib/socket';
+import { LanguageToggle } from '../ui/LanguageToggle';
 import logoSvg from '../../assets/logo.svg';
 
 const NAV_LINKS = [
-  { to: '/lobby', label: 'Jogar' },
-  { to: '/tournaments', label: 'Competições' },
-  { to: '/ranking', label: 'Ranking' },
-  { to: '/friends', label: 'Amigos' },
-  { to: '/history', label: 'Histórico' },
-  { to: '/suggestions', label: 'Sugestões' },
-  { to: '/support', label: 'Suporte' },
-];
+  { to: '/lobby', key: 'nav.play' },
+  { to: '/tournaments', key: 'nav.tournaments' },
+  { to: '/ranking', key: 'nav.ranking' },
+  { to: '/friends', key: 'nav.friends' },
+  { to: '/history', key: 'nav.history' },
+  { to: '/suggestions', key: 'nav.suggestions' },
+  { to: '/support', key: 'nav.support' },
+] as const;
 
 export function Navbar() {
+  const { t } = useTranslation();
   const { user, logout } = useAuthStore();
   const { challenges, unreadFromIds } = useSocialStore();
   const location = useLocation();
@@ -104,7 +107,7 @@ export function Navbar() {
         {/* Desktop: nav links */}
         {user && !isMobile && (
           <div style={{ display: 'flex', gap: 4, flex: 1 }}>
-            {NAV_LINKS.map(({ to, label }) => (
+            {NAV_LINKS.map(({ to, key }) => (
               <Link key={to} to={to} style={{
                 padding: '6px 14px', borderRadius: 'var(--radius-sm)',
                 fontSize: 14, fontWeight: 500,
@@ -112,7 +115,7 @@ export function Navbar() {
                 background: isActive(to) ? 'var(--color-surface-2)' : 'transparent',
                 transition: 'all var(--transition)',
               }}>
-                {label}
+                {t(key)}
               </Link>
             ))}
           </div>
@@ -127,7 +130,7 @@ export function Navbar() {
                   {/* Notification bell */}
                   <button
                     onClick={() => navigate('/notifications')}
-                    aria-label="Notificações"
+                    aria-label={t('nav.notifications')}
                     style={{
                       position: 'relative', padding: 8,
                       borderRadius: 'var(--radius-sm)',
@@ -184,7 +187,7 @@ export function Navbar() {
                     <button
                       onClick={() => setDesktopMenuOpen(o => !o)}
                       style={{ padding: 0, borderRadius: '50%' }}
-                      aria-label="Menu do usuário"
+                      aria-label={t('nav.user_menu')}
                     >
                       <Avatar src={user.avatarUrl} name={user.nickname} size={36} />
                     </button>
@@ -199,10 +202,12 @@ export function Navbar() {
                         overflow: 'hidden',
                         animation: 'fadeIn 150ms ease forwards',
                       }}>
-                        <DropdownItem onClick={() => goTo(`/profile/${user.nickname}`)}>Perfil</DropdownItem>
-                        <DropdownItem onClick={() => goTo('/profile/me')}>Editar Perfil</DropdownItem>
+                        <DropdownItem onClick={() => goTo(`/profile/${user.nickname}`)}>{t('nav.profile')}</DropdownItem>
+                        <DropdownItem onClick={() => goTo('/profile/me')}>{t('nav.edit_profile')}</DropdownItem>
                         <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 0' }} />
-                        <DropdownItem onClick={handleLogout} danger>Sair</DropdownItem>
+                        <LanguageToggle inline />
+                        <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 0' }} />
+                        <DropdownItem onClick={handleLogout} danger>{t('nav.logout')}</DropdownItem>
                       </div>
                     )}
                   </div>
@@ -213,7 +218,7 @@ export function Navbar() {
               {isMobile && (
                 <button
                   onClick={() => setMobileMenuOpen(o => !o)}
-                  aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+                  aria-label={mobileMenuOpen ? t('nav.close_menu') : t('nav.open_menu')}
                   aria-expanded={mobileMenuOpen}
                   style={{
                     padding: 10,
@@ -247,19 +252,20 @@ export function Navbar() {
               )}
             </>
           ) : (
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <LanguageToggle />
               <Link to="/" style={{
                 padding: '8px 14px', borderRadius: 'var(--radius-sm)',
                 fontSize: 14, fontWeight: 500, color: 'var(--color-text-muted)',
               }}>
-                Entrar
+                {t('nav.login')}
               </Link>
               <Link to="/register" style={{
                 padding: '8px 14px', borderRadius: 'var(--radius-sm)',
                 fontSize: 14, fontWeight: 500, color: '#fff',
                 background: 'var(--color-primary)',
               }}>
-                Cadastrar
+                {t('nav.register')}
               </Link>
             </div>
           )}
@@ -325,7 +331,7 @@ export function Navbar() {
               textAlign: 'left',
             }}>
               <BellIcon />
-              Notificações
+              {t('nav.notifications')}
               {notifications > 0 && (
                 <span style={{
                   marginLeft: 'auto',
@@ -343,7 +349,7 @@ export function Navbar() {
             <div style={{ height: 1, background: 'var(--color-border)', margin: '6px 0' }} />
 
             {/* Nav links */}
-            {NAV_LINKS.map(({ to, label }) => (
+            {NAV_LINKS.map(({ to, key }) => (
               <Link key={to} to={to} style={{
                 display: 'flex', alignItems: 'center',
                 padding: '13px 20px', fontSize: 15, fontWeight: 500,
@@ -351,7 +357,7 @@ export function Navbar() {
                 background: isActive(to) ? 'var(--color-primary-dim)' : 'transparent',
                 borderLeft: isActive(to) ? '3px solid var(--color-primary)' : '3px solid transparent',
               }}>
-                {label}
+                {t(key)}
               </Link>
             ))}
 
@@ -364,7 +370,7 @@ export function Navbar() {
               alignItems: 'center', gap: 10,
             }}>
               <span style={{ color: 'var(--color-primary)' }}>◈</span>
-              Carteira{ccBalance !== null ? ` · ${ccBalance} CC` : ''}
+              {t('nav.wallet')}{ccBalance !== null ? ` · ${ccBalance} CC` : ''}
             </button>
 
             <div style={{ height: 1, background: 'var(--color-border)', margin: '6px 0' }} />
@@ -374,21 +380,26 @@ export function Navbar() {
               padding: '13px 20px', fontSize: 15,
               color: 'var(--color-text)', textAlign: 'left', background: 'transparent',
             }}>
-              Meu Perfil
+              {t('nav.my_profile')}
             </button>
             <button onClick={() => goTo('/profile/me')} style={{
               display: 'flex', width: '100%',
               padding: '13px 20px', fontSize: 15,
               color: 'var(--color-text)', textAlign: 'left', background: 'transparent',
             }}>
-              Editar Perfil
+              {t('nav.edit_profile')}
             </button>
+
+            <div style={{ padding: '10px 20px' }}>
+              <LanguageToggle />
+            </div>
+
             <button onClick={handleLogout} style={{
               display: 'flex', width: '100%',
               padding: '13px 20px', fontSize: 15,
               color: 'var(--color-danger)', textAlign: 'left', background: 'transparent',
             }}>
-              Sair
+              {t('nav.logout')}
             </button>
           </div>
         </>

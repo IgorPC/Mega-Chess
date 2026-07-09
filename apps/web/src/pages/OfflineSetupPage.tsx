@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import type { AIDifficulty } from '../lib/chessAI';
 
 interface DifficultyOption {
   value: AIDifficulty;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
   icon: string;
   color: string;
 }
@@ -15,28 +16,29 @@ interface DifficultyOption {
 const DIFFICULTIES: DifficultyOption[] = [
   {
     value: 'easy',
-    label: 'Fácil',
-    description: 'Movimentos aleatórios. Ideal para iniciantes ou treino casual.',
+    labelKey: 'setup.difficulty_easy',
+    descriptionKey: 'setup.difficulty_easy_description',
     icon: '🌱',
     color: '#4CAF50',
   },
   {
     value: 'medium',
-    label: 'Médio',
-    description: 'Prefere capturas e evita trocas desvantajosas. Bom desafio para jogadores casuais.',
+    labelKey: 'setup.difficulty_medium',
+    descriptionKey: 'setup.difficulty_medium_description',
     icon: '⚔️',
     color: '#F5A623',
   },
   {
     value: 'hard',
-    label: 'Difícil',
-    description: 'Análise com minimax e avaliação posicional. Vai testar suas habilidades de verdade.',
+    labelKey: 'setup.difficulty_hard',
+    descriptionKey: 'setup.difficulty_hard_description',
     icon: '🔥',
     color: 'var(--color-danger)',
   },
 ];
 
 export function OfflineSetupPage() {
+  const { t } = useTranslation('game');
   const navigate = useNavigate();
   const [selected, setSelected] = useState<AIDifficulty>('medium');
 
@@ -48,10 +50,10 @@ export function OfflineSetupPage() {
     }}>
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 8 }}>
-          Jogar contra a IA
+          {t('setup.title')}
         </h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
-          Partidas offline não afetam seu ELO e aparecem marcadas no histórico.
+          {t('setup.subtitle')}
         </p>
       </div>
 
@@ -83,10 +85,10 @@ export function OfflineSetupPage() {
                 color: selected === d.value ? d.color : 'var(--color-text)',
                 marginBottom: 4,
               }}>
-                {d.label}
+                {t(d.labelKey)}
               </div>
               <div style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-                {d.description}
+                {t(d.descriptionKey)}
               </div>
             </div>
             <div style={{
@@ -106,21 +108,21 @@ export function OfflineSetupPage() {
 
       <Card style={{ padding: '14px 18px', marginBottom: 24, background: 'rgba(61, 74, 235, 0.08)', border: '1px solid rgba(61, 74, 235, 0.3)' }}>
         <div style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-          <strong style={{ color: 'var(--color-text)' }}>Você joga com as peças brancas.</strong>{' '}
-          As partidas são registradas no seu histórico mas não alteram seu rating ELO.
+          <strong style={{ color: 'var(--color-text)' }}>{t('setup.plays_white')}</strong>{' '}
+          {t('setup.recorded_no_elo')}
         </div>
       </Card>
 
       <div style={{ display: 'flex', gap: 12 }}>
         <Button variant="ghost" fullWidth onClick={() => navigate('/lobby')}>
-          Voltar
+          {t('setup.back')}
         </Button>
         <Button
           fullWidth
           size="lg"
           onClick={() => navigate(`/play/offline/game?difficulty=${selected}`)}
         >
-          Jogar como {DIFFICULTIES.find(d => d.value === selected)?.label}
+          {t('setup.play_as', { difficulty: t(DIFFICULTIES.find(d => d.value === selected)!.labelKey) })}
         </Button>
       </div>
     </div>

@@ -26,9 +26,13 @@ export class EmailService {
 
   // ─── Base layout ────────────────────────────────────────────────────────────
 
-  private layout(title: string, bodyHtml: string): string {
+  // Sub-project 4 (see docs/superpowers/specs/2026-07-09-i18n-foundation-design.md)
+  // will translate the actual subject/body copy per locale. For now this only
+  // threads the locale through so the HTML lang attribute is correct and every
+  // call site has the parameter available — content stays Portuguese either way.
+  private layout(title: string, bodyHtml: string, locale: 'pt' | 'en' = 'pt'): string {
     return `<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="${locale === 'en' ? 'en' : 'pt-BR'}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -126,7 +130,7 @@ export class EmailService {
 
   // ─── 1. Confirmação de cadastro ─────────────────────────────────────────────
 
-  sendEmailConfirmation(to: string, name: string, confirmUrl: string): void {
+  sendEmailConfirmation(to: string, name: string, confirmUrl: string, locale: 'pt' | 'en' = 'pt'): void {
     const body = `
       <p style="margin:0 0 4px;font-size:13px;color:#8B8CA7;">Bem-vindo ao tabuleiro!</p>
       <h1 style="margin:0 0 24px;font-size:26px;font-weight:700;color:#FFFFFF;line-height:1.2;">
@@ -144,12 +148,12 @@ export class EmailService {
       ${this.divider()}
       ${this.thanks()}
     `;
-    this.send(to, 'Confirme seu email — Mega Chess', this.layout('Confirmação de Email', body));
+    this.send(to, 'Confirme seu email — Mega Chess', this.layout('Confirmação de Email', body, locale));
   }
 
   // ─── 2. Depósito efetuado (PIX gerado, aguardando pagamento) ────────────────
 
-  sendDepositCreated(to: string, name: string, valueBrl: number, depositId: string): void {
+  sendDepositCreated(to: string, name: string, valueBrl: number, depositId: string, locale: 'pt' | 'en' = 'pt'): void {
     const body = `
       <p style="margin:0 0 4px;">${this.badge('Depósito')}</p>
       <h1 style="margin:8px 0 24px;font-size:26px;font-weight:700;color:#FFFFFF;line-height:1.2;">
@@ -175,12 +179,12 @@ export class EmailService {
       ${this.divider()}
       ${this.thanks()}
     `;
-    this.send(to, 'Depósito PIX gerado — Mega Chess', this.layout('Depósito criado', body));
+    this.send(to, 'Depósito PIX gerado — Mega Chess', this.layout('Depósito criado', body, locale));
   }
 
   // ─── 3. Depósito confirmado (CC creditado na carteira) ──────────────────────
 
-  sendDepositConfirmed(to: string, name: string, valueBrl: number, newBalance: number): void {
+  sendDepositConfirmed(to: string, name: string, valueBrl: number, newBalance: number, locale: 'pt' | 'en' = 'pt'): void {
     const body = `
       <p style="margin:0 0 4px;">${this.badge('Depósito confirmado', '#2D6A4F')}</p>
       <h1 style="margin:8px 0 24px;font-size:26px;font-weight:700;color:#FFFFFF;line-height:1.2;">
@@ -202,7 +206,7 @@ export class EmailService {
       ${this.divider()}
       ${this.thanks()}
     `;
-    this.send(to, 'Depósito confirmado — Mega Chess', this.layout('Depósito confirmado', body));
+    this.send(to, 'Depósito confirmado — Mega Chess', this.layout('Depósito confirmado', body, locale));
   }
 
   // ─── 4. Saque solicitado ─────────────────────────────────────────────────────
@@ -214,6 +218,7 @@ export class EmailService {
     valueBrl: number,
     feeCC: number,
     pixKey: string,
+    locale: 'pt' | 'en' = 'pt',
   ): void {
     const body = `
       <p style="margin:0 0 4px;">${this.badge('Saque', '#8B5CF6')}</p>
@@ -241,12 +246,12 @@ export class EmailService {
       ${this.divider()}
       ${this.thanks()}
     `;
-    this.send(to, 'Solicitação de saque recebida — Mega Chess', this.layout('Saque solicitado', body));
+    this.send(to, 'Solicitação de saque recebida — Mega Chess', this.layout('Saque solicitado', body, locale));
   }
 
   // ─── 5. Ticket de suporte aberto ────────────────────────────────────────────
 
-  sendTicketOpened(to: string, name: string, ticketId: string, title: string, category: string): void {
+  sendTicketOpened(to: string, name: string, ticketId: string, title: string, category: string, locale: 'pt' | 'en' = 'pt'): void {
     const body = `
       <p style="margin:0 0 4px;">${this.badge('Suporte')}</p>
       <h1 style="margin:8px 0 24px;font-size:26px;font-weight:700;color:#FFFFFF;line-height:1.2;">
@@ -272,12 +277,12 @@ export class EmailService {
       ${this.divider()}
       ${this.thanks()}
     `;
-    this.send(to, `Ticket #${ticketId.slice(0, 8).toUpperCase()} aberto — Mega Chess`, this.layout('Ticket de suporte', body));
+    this.send(to, `Ticket #${ticketId.slice(0, 8).toUpperCase()} aberto — Mega Chess`, this.layout('Ticket de suporte', body, locale));
   }
 
   // ─── 6. Ticket de suporte atualizado (nova resposta do suporte) ─────────────
 
-  sendTicketUpdated(to: string, name: string, ticketId: string, title: string, preview: string): void {
+  sendTicketUpdated(to: string, name: string, ticketId: string, title: string, preview: string, locale: 'pt' | 'en' = 'pt'): void {
     const safePreview = preview.length > 200 ? preview.slice(0, 200) + '…' : preview;
     const body = `
       <p style="margin:0 0 4px;">${this.badge('Suporte — Nova resposta')}</p>
@@ -302,12 +307,12 @@ export class EmailService {
       ${this.divider()}
       ${this.thanks()}
     `;
-    this.send(to, `Resposta no ticket #${ticketId.slice(0, 8).toUpperCase()} — Mega Chess`, this.layout('Atualização de ticket', body));
+    this.send(to, `Resposta no ticket #${ticketId.slice(0, 8).toUpperCase()} — Mega Chess`, this.layout('Atualização de ticket', body, locale));
   }
 
   // ─── 7. Report/denúncia enviada ─────────────────────────────────────────────
 
-  sendReportReceived(to: string, name: string, reportedNickname: string, reason: string): void {
+  sendReportReceived(to: string, name: string, reportedNickname: string, reason: string, locale: 'pt' | 'en' = 'pt'): void {
     const body = `
       <p style="margin:0 0 4px;">${this.badge('Denúncia', '#B15653')}</p>
       <h1 style="margin:8px 0 24px;font-size:26px;font-weight:700;color:#FFFFFF;line-height:1.2;">
@@ -332,12 +337,12 @@ export class EmailService {
       ${this.divider()}
       ${this.thanks()}
     `;
-    this.send(to, 'Denúncia recebida — Mega Chess', this.layout('Denúncia recebida', body));
+    this.send(to, 'Denúncia recebida — Mega Chess', this.layout('Denúncia recebida', body, locale));
   }
 
   // ─── Recuperação de senha ────────────────────────────────────────────────────
 
-  sendPasswordReset(to: string, name: string, resetUrl: string): void {
+  sendPasswordReset(to: string, name: string, resetUrl: string, locale: 'pt' | 'en' = 'pt'): void {
     const body = `
       <p style="margin:0 0 4px;font-size:13px;color:#8B8CA7;">Conta Mega Chess</p>
       <h1 style="margin:0 0 24px;font-size:26px;font-weight:700;color:#FFFFFF;line-height:1.2;">
@@ -355,7 +360,7 @@ export class EmailService {
       ${this.divider()}
       ${this.thanks()}
     `;
-    this.send(to, 'Redefinição de senha — Mega Chess', this.layout('Redefinir senha', body));
+    this.send(to, 'Redefinição de senha — Mega Chess', this.layout('Redefinir senha', body, locale));
   }
 
   // ─── Admin: OTP de acesso ────────────────────────────────────────────────────

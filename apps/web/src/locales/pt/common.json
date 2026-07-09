@@ -1,0 +1,66 @@
+{
+  "nav": {
+    "play": "Jogar",
+    "tournaments": "Competições",
+    "ranking": "Ranking",
+    "friends": "Amigos",
+    "history": "Histórico",
+    "suggestions": "Sugestões",
+    "support": "Suporte",
+    "notifications": "Notificações",
+    "user_menu": "Menu do usuário",
+    "profile": "Perfil",
+    "edit_profile": "Editar Perfil",
+    "my_profile": "Meu Perfil",
+    "logout": "Sair",
+    "open_menu": "Abrir menu",
+    "close_menu": "Fechar menu",
+    "wallet": "Carteira",
+    "login": "Entrar",
+    "register": "Cadastrar"
+  },
+  "duel_popup": {
+    "ranked_duel": "⚔️ Duelo Ranqueado",
+    "challenged_you": "te desafiou",
+    "mode": "Modalidade",
+    "stake": "Aposta",
+    "stake_each": "◈ {{amount}} CC cada",
+    "prize": "Prêmio",
+    "accept": "Aceitar",
+    "decline": "Recusar",
+    "duel_labels": {
+      "DUEL_FLASH": "Flash (3+2)",
+      "DUEL_GIANT": "Gigante (10+0)"
+    }
+  },
+  "report_modal": {
+    "title": "Denunciar partida",
+    "opponent": "Oponente:",
+    "checking": "Verificando...",
+    "expired_message": "O prazo de {{hours}}h para denúncias desta partida expirou.",
+    "close": "Fechar",
+    "form_description": "A partida será analisada automaticamente. Você receberá uma notificação com o resultado em alguns instantes.",
+    "note_label": "Observação (opcional)",
+    "note_placeholder": "Descreva o comportamento suspeito que observou...",
+    "generic_error": "Erro ao enviar denúncia",
+    "appeal_error": "Erro ao enviar apelação",
+    "cancel": "Cancelar",
+    "sending": "Enviando...",
+    "report": "Denunciar",
+    "report_sent_title": "Denúncia enviada!",
+    "report_sent_description": "A análise foi iniciada. Você receberá uma notificação com o resultado.",
+    "analysis_status": "Status da análise",
+    "analyzing": "⏳ Analisando...",
+    "under_review": "Em revisão manual",
+    "confidence": "Confiança: {{percent}}%",
+    "appeal_prompt": "Discorda do resultado? Você pode apelar e um administrador revisará manualmente.",
+    "appeal_placeholder": "Explique por que acredita que houve trapaça...",
+    "appeal_submit": "Apelar para revisão humana",
+    "appeal_sent": "✓ Apelação enviada. Um administrador revisará em breve.",
+    "verdict": {
+      "CLEAN": "✓ Limpo",
+      "SUSPICIOUS": "⚠ Suspeito",
+      "CHEATING": "🚫 Trapaça detectada"
+    }
+  }
+}

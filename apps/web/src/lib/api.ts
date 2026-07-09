@@ -1,3 +1,5 @@
+import { LOCALE_STORAGE_KEY } from '../i18n';
+
 const BASE = '/api/v1';
 
 export class ApiError extends Error {
@@ -20,6 +22,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     ...options,
     headers: {
       ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
+      'Accept-Language': localStorage.getItem(LOCALE_STORAGE_KEY) || 'pt',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },

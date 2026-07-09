@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useSocialStore } from '../store/social.store';
@@ -35,6 +36,7 @@ interface Message {
 }
 
 export function FriendsPage() {
+  const { t } = useTranslation('friends');
   const { user } = useAuthStore();
   const { isMobile } = useBreakpoint();
   const { onlineIds, unreadFromIds, clearUnreadFrom } = useSocialStore();
@@ -68,9 +70,9 @@ export function FriendsPage() {
       const msgs = await api.get<Message[]>(`/messages/${friend.id}`);
       setMessages(msgs);
     } catch {
-      setMessagesError('Não foi possível carregar as mensagens.');
+      setMessagesError(t('messages_load_error'));
     }
-  }, [clearUnreadFrom]);
+  }, [clearUnreadFrom, t]);
 
   const loadFriends = useCallback(async () => {
     const [friendsData, pendingData] = await Promise.all([
@@ -113,14 +115,14 @@ export function FriendsPage() {
     setAddLoading(true);
     try {
       await api.post('/friends/request', { nickname: addNickname });
-      setAddSuccess(`Solicitação enviada para @${addNickname}`);
+      setAddSuccess(t('request_sent', { nickname: addNickname }));
       setAddNickname('');
     } catch (err: unknown) {
-      setAddError(err instanceof Error ? err.message : 'Erro ao enviar solicitação');
+      setAddError(err instanceof Error ? err.message : t('request_error'));
     } finally {
       setAddLoading(false);
     }
-  }, [addNickname]);
+  }, [addNickname, t]);
 
   const handleAccept = useCallback(async (id: string) => {
     try {
@@ -153,11 +155,11 @@ export function FriendsPage() {
       setMessages(prev => [...prev, msg]);
       setChatInput('');
     } catch {
-      setSendError('Falha ao enviar mensagem. Tente novamente.');
+      setSendError(t('send_message_error'));
     } finally {
       setSending(false);
     }
-  }, [chatInput, activeChat, sending]);
+  }, [chatInput, activeChat, sending, t]);
 
   const friendsWithStatus = friends
     .map(f => ({ ...f, isOnline: onlineIds.includes(f.id) }))
@@ -166,18 +168,18 @@ export function FriendsPage() {
   const sidebar = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Card>
-        <h3 style={{ fontWeight: 600, marginBottom: 14, fontSize: 15 }}>Adicionar amigo</h3>
+        <h3 style={{ fontWeight: 600, marginBottom: 14, fontSize: 15 }}>{t('add_friend')}</h3>
         <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Input
             value={addNickname}
             onChange={e => setAddNickname(e.target.value)}
-            placeholder="@apelido"
+            placeholder={t('nickname_placeholder')}
             required
           />
           {addError && <span style={{ fontSize: 12, color: 'var(--color-danger)' }}>{addError}</span>}
           {addSuccess && <span style={{ fontSize: 12, color: 'var(--color-success)' }}>{addSuccess}</span>}
           <Button type="submit" fullWidth size="sm" disabled={addLoading}>
-            {addLoading ? 'Enviando...' : 'Enviar solicitação'}
+            {addLoading ? t('sending') : t('send_request')}
           </Button>
         </form>
       </Card>
@@ -185,7 +187,7 @@ export function FriendsPage() {
       {pending.length > 0 && (
         <Card>
           <h3 style={{ fontWeight: 600, marginBottom: 14, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
-            Solicitações <Badge variant="danger">{pending.length}</Badge>
+            {t('requests')} <Badge variant="danger">{pending.length}</Badge>
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {pending.map(p => (
@@ -202,15 +204,15 @@ export function FriendsPage() {
 
       <Card>
         <h3 style={{ fontWeight: 600, marginBottom: 14, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
-          Amigos
+          {t('friends')}
           <Badge variant="muted">{friends.length}</Badge>
           {friendsWithStatus.filter(f => f.isOnline).length > 0 && (
-            <Badge variant="success">{friendsWithStatus.filter(f => f.isOnline).length} online</Badge>
+            <Badge variant="success">{t('online_count', { count: friendsWithStatus.filter(f => f.isOnline).length })}</Badge>
           )}
         </h3>
         {friends.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--color-text-muted)', textAlign: 'center', padding: '16px 0' }}>
-            Nenhum amigo ainda
+            {t('no_friends')}
           </p>
         ) : (
           <div style={{
@@ -235,7 +237,7 @@ export function FriendsPage() {
                       {f.nickname}
                     </div>
                     <div style={{ fontSize: 11, color: f.isOnline ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
-                      {f.isOnline ? 'Online' : 'Offline'} · {f.rating} ELO
+                      {f.isOnline ? t('online') : t('offline')} · {f.rating} ELO
                     </div>
                   </div>
                   {hasUnread && (
@@ -257,14 +259,14 @@ export function FriendsPage() {
       <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 10 }}>
         {isMobile && (
           <button onClick={() => setActiveChat(null)} style={{ color: 'var(--color-primary)', fontSize: 14, fontWeight: 600, marginRight: 4, background: 'transparent' }}>
-            ← Voltar
+            {t('back')}
           </button>
         )}
         <Avatar src={activeChat.avatarUrl} name={activeChat.nickname} size={36} online={chatIsOnline} />
         <div>
           <div style={{ fontWeight: 600 }}>{activeChat.nickname}</div>
           <div style={{ fontSize: 12, color: chatIsOnline ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
-            {chatIsOnline ? 'Online' : 'Offline'}
+            {chatIsOnline ? t('online') : t('offline')}
           </div>
         </div>
       </div>
@@ -273,11 +275,11 @@ export function FriendsPage() {
         {messagesError ? (
           <div style={{ textAlign: 'center', marginTop: 20 }}>
             <p style={{ fontSize: 13, color: 'var(--color-danger)', marginBottom: 8 }}>{messagesError}</p>
-            <Button size="sm" variant="ghost" onClick={() => openChat(activeChat)}>Tentar novamente</Button>
+            <Button size="sm" variant="ghost" onClick={() => openChat(activeChat)}>{t('retry')}</Button>
           </div>
         ) : messages.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--color-text-muted)', textAlign: 'center', marginTop: 20 }}>
-            Nenhuma mensagem ainda. Diga olá! 👋
+            {t('no_messages')}
           </p>
         ) : messages.map(m => (
           <div key={m.id} style={{
@@ -302,7 +304,7 @@ export function FriendsPage() {
         <input
           value={chatInput}
           onChange={e => { setChatInput(e.target.value); setSendError(''); }}
-          placeholder="Mensagem..."
+          placeholder={t('message_placeholder')}
           maxLength={500}
           disabled={sending}
           style={{
@@ -314,13 +316,13 @@ export function FriendsPage() {
           }}
         />
         <Button type="submit" size="sm" disabled={sending || !chatInput.trim()}>
-          {sending ? '...' : 'Enviar'}
+          {sending ? '...' : t('send')}
         </Button>
       </form>
     </Card>
   ) : (
     <Card style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: 'var(--color-text-muted)', fontSize: 14 }}>
-      Selecione um amigo para conversar
+      {t('select_friend')}
     </Card>
   );
 

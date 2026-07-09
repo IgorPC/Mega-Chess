@@ -1,0 +1,125 @@
+{
+  "deposit_status": {
+    "PENDING": "Awaiting payment",
+    "COMPLETED": "Paid",
+    "EXPIRED": "Expired",
+    "CANCELLED": "Cancelled"
+  },
+  "tx_label": {
+    "DEPOSIT": "Deposit",
+    "WITHDRAWAL": "Withdrawal",
+    "WITHDRAWAL_FEE": "Withdrawal fee",
+    "TOURNAMENT_ENTRY": "Tournament entry",
+    "ENTRY_RESERVE": "Reserve (duel)",
+    "ENTRY_RELEASE": "Refund (duel)",
+    "PRIZE": "Prize",
+    "RAKE": "Platform fee",
+    "REFUND": "Refund"
+  },
+  "cc_tx_label": {
+    "TOURNAMENT_ENTRY": "Entry fee — tournament",
+    "TOURNAMENT_CREATION_FEE": "Creation fee — tournament",
+    "ENTRY_RESERVE": "Reserve — duel",
+    "ENTRY_RELEASE": "Refund — left queue",
+    "PRIZE": "Prize received",
+    "RAKE": "Platform fee",
+    "REFUND": "Refund",
+    "DEPOSIT": "PIX deposit converted",
+    "WITHDRAWAL": "Withdrawal requested",
+    "WITHDRAWAL_FEE": "Withdrawal fee"
+  },
+  "pix_key_label": {
+    "CPF": "CPF",
+    "EMAIL": "Email",
+    "PHONE": "Phone",
+    "EVP": "Random key"
+  },
+  "deposit_modal": {
+    "title": "Pay with PIX",
+    "value_label": "Value:",
+    "expires_at": "· Expires at {{time}}",
+    "copy_paste_hint": "Or copy the PIX copy-and-paste code:",
+    "copied": "✓ Copied!",
+    "copy_code": "Copy code",
+    "auto_credit_notice": "After payment, your balance will be credited automatically within 1 minute.",
+    "close": "Close"
+  },
+  "copy_paste_row": {
+    "copied": "✓ Copied!",
+    "copy_pix_code": "Copy PIX code"
+  },
+  "cpf_modal": {
+    "title": "Required information",
+    "description": "Asaas requires CPF and date of birth to generate the PIX payment and verify your age.",
+    "cpf_invalid": "Enter a valid CPF with 11 digits.",
+    "birth_date_required": "Enter your date of birth.",
+    "save_data": "Save this to my account (won't need to enter it again)",
+    "cancel": "Cancel",
+    "continue": "Continue"
+  },
+  "title": "Wallet",
+  "deposit_confirmed_toast": "Deposit of R$ {{value}} confirmed! Balance updated.",
+  "available_balance": "AVAILABLE BALANCE",
+  "cc_parity": "1 CC = R$ 1.00",
+  "tab_deposit": "Deposit",
+  "tab_withdraw": "Withdraw",
+  "tab_history": "PIX",
+  "tab_cc_history": "CC History",
+  "deposit": {
+    "title": "Deposit via PIX",
+    "disabled_notice": "Deposits are temporarily unavailable. Please try again later.",
+    "value_label": "Amount in R$ (min. R$ 5.00)",
+    "min_value_error": "Minimum amount: R$ 5.00",
+    "generic_error": "Error generating PIX. Please try again.",
+    "generate_qr": "Generate PIX QR Code",
+    "footer_notice": "After payment, the Chess Coins value will be credited automatically. There's no fee for deposits."
+  },
+  "withdraw": {
+    "title": "Withdraw via PIX",
+    "disabled_notice": "Withdrawals are temporarily unavailable. Please try again later.",
+    "pix_key_title": "Your PIX key",
+    "pix_key_placeholder": {
+      "CPF": "000.000.000-00",
+      "EMAIL": "email@example.com",
+      "PHONE": "+5511999999999",
+      "EVP": "EVP key (UUID)"
+    },
+    "save_pix_key": "Save PIX key",
+    "pix_key_saved": "PIX key saved successfully!",
+    "pix_key_error": "Error saving PIX key.",
+    "amount_label": "Amount in CC (min. 10 CC · fee: {{pct}}%, min. {{min}} CC)",
+    "amount_placeholder": "E.g.: 100",
+    "amount_min_error": "Minimum amount: 10 CC",
+    "pix_key_required_error": "Register a PIX key before withdrawing.",
+    "fee_preview": "Fee: {{fee}} CC → you'll receive R$ {{net}}",
+    "success_message": "Withdrawal of {{amount}} CC requested! Fee: {{fee}} CC. You'll receive R$ {{net}} via PIX within 30 minutes.",
+    "generic_error": "Error requesting withdrawal.",
+    "submit": "Request withdrawal",
+    "footer_notice": "Withdrawals go through anti-fraud analysis and are processed within 30 minutes. 2% fee (minimum 2 CC)."
+  },
+  "history": {
+    "loading": "Loading...",
+    "no_deposits": "No deposits yet.",
+    "deposit_pix": "PIX Deposit — R$ {{value}}",
+    "expires_at": "Expires at {{time}}",
+    "cancel_deposit": "Cancel deposit",
+    "previous": "← Previous",
+    "next": "Next →"
+  },
+  "cc_history": {
+    "title": "CC History",
+    "subtitle": "All Chess Coins movements on your account",
+    "loading": "Loading...",
+    "no_transactions": "No transactions yet.",
+    "balance_after": "· Balance: {{balance}} CC",
+    "previous": "← Previous",
+    "next": "Next →"
+  },
+  "cancel_modal": {
+    "title": "Cancel deposit?",
+    "description": "The QR Code will be invalidated and you won't be able to complete the payment anymore.",
+    "generic_error": "Error cancelling deposit",
+    "back": "Back",
+    "confirm": "Confirm cancellation"
+  }
+}

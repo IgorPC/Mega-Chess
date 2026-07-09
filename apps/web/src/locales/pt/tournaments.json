@@ -1,0 +1,53 @@
+{
+  "queue_low": "Baixa",
+  "queue_medium": "Média",
+  "queue_high": "Alta",
+  "duel_labels": {
+    "DUEL_FLASH": "Flash (3+2)",
+    "DUEL_GIANT": "Gigante (10+0)"
+  },
+  "invite_modal": {
+    "title": "Convidar amigo — {{duelType}}",
+    "stake": "Aposta:",
+    "each": "cada ·",
+    "prize": "Prêmio:",
+    "loading": "Carregando...",
+    "no_friends_online": "Nenhum amigo online no momento.",
+    "sent": "✓ Enviado",
+    "invite": "Convidar",
+    "cancel": "Cancelar"
+  },
+  "duel_panel": {
+    "age_requirement_error": "Você precisa ter ao menos 18 anos e informar sua data de nascimento no perfil para participar de duelos.",
+    "queue_join_error": "Erro ao entrar na fila.",
+    "searching_opponent": "Procurando adversário...",
+    "per_player": "por jogador",
+    "prize_pct": "(90% do pote)",
+    "cancel_search": "Cancelar busca",
+    "mode": "Modalidade",
+    "stake_per_player": "Aposta por jogador",
+    "cc": "CC",
+    "winner_prize": "Prêmio ao vencedor (90%)",
+    "rules": "10% de rake · Desempate por material → tempo restante → dupla eliminação · Análise antifraude pós-partida",
+    "risk_warning_title": "Duelos envolvem risco financeiro real.",
+    "risk_warning_body": "A aposta de {{fee}} CC é debitada da sua carteira ao formar a partida e não é reembolsável em caso de derrota. A Plataforma retém 10% do pote (rake) mesmo do vencedor. Jogue apenas com valores que você pode perder e nunca compartilhe sua conta com terceiros.",
+    "age_gate_title": "Duelos exigem confirmação de maioridade.",
+    "age_gate_body_has_birthdate": "Você precisa ter ao menos 18 anos para participar de duelos.",
+    "age_gate_body_no_birthdate_pre": "Informe sua data de nascimento em",
+    "age_gate_body_no_birthdate_link": "Editar Perfil",
+    "age_gate_body_no_birthdate_post": "para liberar os duelos.",
+    "find_opponent": "♟ Buscar adversário",
+    "invite_friend": "👥 Convidar amigo"
+  },
+  "coming_soon": {
+    "title": "Torneios em breve",
+    "description": "Estamos finalizando o módulo de torneios da comunidade — eliminação simples, até 64 jogadores, prêmios automáticos e muito mais. Fique de olho!",
+    "badge": "Em desenvolvimento",
+    "whats_coming_title": "O que está por vir",
+    "whats_coming_body": "Torneios públicos e privados · Eliminação simples com 3º lugar · Taxa de entrada em Chess Coins · Pote de prêmios automático · Chaveamento em tempo real · Análise antifraude pós-torneio"
+  },
+  "title": "Competições",
+  "subtitle": "Duelos 1v1 ou torneios de até 64 jogadores criados pela comunidade.",
+  "tab_duel": "⚡ Duelo 1v1",
+  "tab_tournaments": "🏆 Torneios"
+}

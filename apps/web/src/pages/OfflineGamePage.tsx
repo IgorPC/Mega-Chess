@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { useAuthStore } from '../store/auth.store';
@@ -11,10 +12,10 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Avatar } from '../components/ui/Avatar';
 
-const DIFFICULTY_LABELS: Record<AIDifficulty, string> = {
-  easy: 'Fácil',
-  medium: 'Médio',
-  hard: 'Difícil',
+const DIFFICULTY_KEYS: Record<AIDifficulty, string> = {
+  easy: 'setup.difficulty_easy',
+  medium: 'setup.difficulty_medium',
+  hard: 'setup.difficulty_hard',
 };
 
 const DIFFICULTY_COLORS: Record<AIDifficulty, string> = {
@@ -29,21 +30,21 @@ const AI_THINK_MS: Record<AIDifficulty, number> = {
   hard: 2500,
 };
 
-const REASON_LABELS: Record<string, string> = {
-  checkmate: 'Xeque-mate',
-  stalemate: 'Afogamento',
-  threefold: 'Repetição tripla',
-  insufficient: 'Material insuficiente',
-  fifty_moves: 'Regra dos 50 lances',
-  forfeit: 'Desistência',
-  draw: 'Empate',
+const REASON_KEYS: Record<string, string> = {
+  checkmate: 'reason.checkmate',
+  stalemate: 'reason.stalemate',
+  threefold: 'reason.threefold',
+  insufficient: 'reason.insufficient',
+  fifty_moves: 'reason.fifty_moves',
+  forfeit: 'reason.forfeit',
+  draw: 'reason.draw',
 };
 
 const PROMOTION_PIECES = [
-  { piece: 'q', label: 'Rainha', symbol: '♕' },
-  { piece: 'r', label: 'Torre',  symbol: '♖' },
-  { piece: 'b', label: 'Bispo',  symbol: '♗' },
-  { piece: 'n', label: 'Cavalo', symbol: '♘' },
+  { piece: 'q', labelKey: 'promotion.queen', symbol: '♕' },
+  { piece: 'r', labelKey: 'promotion.rook', symbol: '♖' },
+  { piece: 'b', labelKey: 'promotion.bishop', symbol: '♗' },
+  { piece: 'n', labelKey: 'promotion.knight', symbol: '♘' },
 ];
 
 type GameStatus = 'playing' | 'finished';
@@ -70,6 +71,7 @@ export function OfflineGamePage() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const { isMobile, isTablet, width } = useBreakpoint();
+  const { t } = useTranslation('game');
 
   const gameRef = useRef(new Chess());
   const [fen, setFen] = useState(gameRef.current.fen());
@@ -316,17 +318,17 @@ export function OfflineGamePage() {
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-          Computador
+          {t('offline.computer')}
           <span style={{
             fontSize: 10, fontWeight: 700, padding: '2px 6px',
             borderRadius: 99, background: diffColor + '22',
             color: diffColor, letterSpacing: '0.05em',
           }}>
-            {DIFFICULTY_LABELS[difficulty].toUpperCase()}
+            {t(DIFFICULTY_KEYS[difficulty]).toUpperCase()}
           </span>
         </div>
         <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
-          {aiThinking ? 'Pensando...' : 'Peças pretas'}
+          {aiThinking ? t('offline.thinking') : t('offline.black_pieces')}
         </div>
       </div>
       {aiThinking && (
@@ -361,13 +363,13 @@ export function OfflineGamePage() {
         <div style={{ fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
           {user?.nickname}
           {inCheck && isMyTurn && (
-            <span style={{ fontSize: 11, color: '#F5A623', fontWeight: 700 }}>XEQUE</span>
+            <span style={{ fontSize: 11, color: '#F5A623', fontWeight: 700 }}>{t('offline.check')}</span>
           )}
         </div>
-        <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>Peças brancas · ELO {user?.rating}</div>
+        <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{t('offline.white_pieces_elo', { rating: user?.rating })}</div>
       </div>
       <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-        {isMyTurn ? 'Seu turno' : ''}
+        {isMyTurn ? t('offline.your_turn') : ''}
       </div>
     </div>
   );
@@ -386,7 +388,7 @@ export function OfflineGamePage() {
           color: '#F5A623', fontWeight: 600, fontSize: 13, textAlign: 'center',
           animation: 'pulse 1s infinite',
         }}>
-          ⚠ Você está em xeque!
+          {t('offline.in_check')}
         </div>
       )}
 
@@ -426,13 +428,13 @@ export function OfflineGamePage() {
           disabled={status !== 'playing' || aiThinking}
           style={{ flex: 1 }}
         >
-          ⚑ Desistir
+          {t('offline.forfeit')}
         </Button>
         <Button
           variant="ghost" size="sm"
           onClick={toggleMute}
           style={{ width: 40, padding: 0, flexShrink: 0 }}
-          title={muted ? 'Ativar sons' : 'Mutar sons'}
+          title={muted ? t('offline.unmute_sounds') : t('offline.mute_sounds')}
         >
           {muted ? '🔇' : '🔊'}
         </Button>
@@ -464,13 +466,13 @@ export function OfflineGamePage() {
           : result.outcome === 'loss' ? 'var(--color-danger)'
           : 'var(--color-text)',
       }}>
-        {result.outcome === 'win' ? 'Vitória!' : result.outcome === 'draw' ? 'Empate' : 'Derrota'}
+        {result.outcome === 'win' ? t('offline.victory') : result.outcome === 'draw' ? t('offline.draw') : t('offline.defeat')}
       </div>
       <div style={{ color: 'var(--color-text-muted)', fontSize: 12, marginTop: 4 }}>
-        {REASON_LABELS[result.reason] ?? result.reason} · vs Computador ({DIFFICULTY_LABELS[difficulty]})
+        {t(REASON_KEYS[result.reason] ?? result.reason)} · {t('offline.vs_computer', { difficulty: t(DIFFICULTY_KEYS[difficulty]) })}
       </div>
       <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 6 }}>
-        ELO não alterado
+        {t('offline.elo_unaffected')}
       </div>
       {saveFailed && (
         <div style={{
@@ -478,12 +480,12 @@ export function OfflineGamePage() {
           background: 'rgba(177,86,83,0.1)', border: '1px solid var(--color-danger)',
           borderRadius: 'var(--radius-sm)', color: 'var(--color-danger)',
         }}>
-          ⚠ Não foi possível salvar a partida no histórico.
+          {t('offline.save_failed')}
         </div>
       )}
       <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-        <Button variant="ghost" fullWidth onClick={restart}>Jogar de novo</Button>
-        <Button fullWidth onClick={() => navigate('/lobby')}>Voltar ao lobby</Button>
+        <Button variant="ghost" fullWidth onClick={restart}>{t('offline.play_again')}</Button>
+        <Button fullWidth onClick={() => navigate('/lobby')}>{t('offline.back_to_lobby')}</Button>
       </div>
     </Card>
   );
@@ -503,12 +505,12 @@ export function OfflineGamePage() {
             maxWidth: 360, width: '90%', textAlign: 'center',
             boxShadow: 'var(--shadow-card)',
           }}>
-            <div style={{ fontSize: 22, marginBottom: 4 }}>♟ Promover peão</div>
+            <div style={{ fontSize: 22, marginBottom: 4 }}>{t('promotion.title')}</div>
             <div style={{ color: 'var(--color-text-muted)', fontSize: 13, marginBottom: 20 }}>
-              Escolha a peça para promoção
+              {t('promotion.choose_piece')}
             </div>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 24 }}>
-              {PROMOTION_PIECES.map(({ piece, label, symbol }) => (
+              {PROMOTION_PIECES.map(({ piece, labelKey, symbol }) => (
                 <button
                   key={piece}
                   onClick={() => setPromotionChoice(piece)}
@@ -524,11 +526,11 @@ export function OfflineGamePage() {
                   }}
                 >
                   <span style={{ fontSize: 30, lineHeight: 1 }}>{symbol}</span>
-                  <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{label}</span>
+                  <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{t(labelKey)}</span>
                 </button>
               ))}
             </div>
-            <Button fullWidth onClick={confirmPromotion}>Confirmar promoção</Button>
+            <Button fullWidth onClick={confirmPromotion}>{t('promotion.confirm')}</Button>
           </div>
         </div>
       )}
@@ -542,13 +544,13 @@ export function OfflineGamePage() {
         }}>
           <Card style={{ maxWidth: 360, width: '90%', textAlign: 'center', padding: '28px 32px' }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>⚑</div>
-            <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>Desistir da partida?</h2>
+            <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>{t('forfeit_modal.title')}</h2>
             <p style={{ color: 'var(--color-text-muted)', fontSize: 14, lineHeight: 1.5, marginBottom: 24 }}>
-              A partida será registrada como derrota no histórico.
+              {t('offline.forfeit_modal_description')}
             </p>
             <div style={{ display: 'flex', gap: 10 }}>
-              <Button variant="ghost" fullWidth onClick={() => setShowForfeitModal(false)}>Cancelar</Button>
-              <Button variant="danger" fullWidth onClick={confirmForfeit}>Sim, desistir</Button>
+              <Button variant="ghost" fullWidth onClick={() => setShowForfeitModal(false)}>{t('forfeit_modal.cancel')}</Button>
+              <Button variant="danger" fullWidth onClick={confirmForfeit}>{t('forfeit_modal.confirm')}</Button>
             </div>
           </Card>
         </div>
@@ -578,18 +580,18 @@ export function OfflineGamePage() {
           }}>
             {resultCard || (
               <Card style={{ padding: 20 }}>
-                <h3 style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>Partida Offline</h3>
+                <h3 style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>{t('offline.sidebar_title')}</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: 'var(--color-text-muted)' }}>Dificuldade</span>
-                    <span style={{ color: diffColor, fontWeight: 600 }}>{DIFFICULTY_LABELS[difficulty]}</span>
+                    <span style={{ color: 'var(--color-text-muted)' }}>{t('offline.difficulty')}</span>
+                    <span style={{ color: diffColor, fontWeight: 600 }}>{t(DIFFICULTY_KEYS[difficulty])}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: 'var(--color-text-muted)' }}>ELO</span>
-                    <span style={{ color: 'var(--color-text-muted)' }}>Não afetado</span>
+                    <span style={{ color: 'var(--color-text-muted)' }}>{t('offline.elo')}</span>
+                    <span style={{ color: 'var(--color-text-muted)' }}>{t('offline.elo_not_affected')}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: 'var(--color-text-muted)' }}>Lances</span>
+                    <span style={{ color: 'var(--color-text-muted)' }}>{t('offline.moves')}</span>
                     <span>{Math.floor(moveCount / 2)}</span>
                   </div>
                 </div>

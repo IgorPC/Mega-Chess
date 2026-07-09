@@ -1,0 +1,66 @@
+{
+  "nav": {
+    "play": "Play",
+    "tournaments": "Tournaments",
+    "ranking": "Ranking",
+    "friends": "Friends",
+    "history": "History",
+    "suggestions": "Suggestions",
+    "support": "Support",
+    "notifications": "Notifications",
+    "user_menu": "User menu",
+    "profile": "Profile",
+    "edit_profile": "Edit Profile",
+    "my_profile": "My Profile",
+    "logout": "Log out",
+    "open_menu": "Open menu",
+    "close_menu": "Close menu",
+    "wallet": "Wallet",
+    "login": "Log in",
+    "register": "Sign up"
+  },
+  "duel_popup": {
+    "ranked_duel": "⚔️ Ranked Duel",
+    "challenged_you": "challenged you",
+    "mode": "Mode",
+    "stake": "Stake",
+    "stake_each": "◈ {{amount}} CC each",
+    "prize": "Prize",
+    "accept": "Accept",
+    "decline": "Decline",
+    "duel_labels": {
+      "DUEL_FLASH": "Flash (3+2)",
+      "DUEL_GIANT": "Giant (10+0)"
+    }
+  },
+  "report_modal": {
+    "title": "Report match",
+    "opponent": "Opponent:",
+    "checking": "Checking...",
+    "expired_message": "The {{hours}}h window for reporting this match has expired.",
+    "close": "Close",
+    "form_description": "The match will be analyzed automatically. You'll get a notification with the result shortly.",
+    "note_label": "Note (optional)",
+    "note_placeholder": "Describe the suspicious behavior you noticed...",
+    "generic_error": "Error submitting report",
+    "appeal_error": "Error submitting appeal",
+    "cancel": "Cancel",
+    "sending": "Sending...",
+    "report": "Report",
+    "report_sent_title": "Report submitted!",
+    "report_sent_description": "The analysis has started. You'll get a notification with the result.",
+    "analysis_status": "Analysis status",
+    "analyzing": "⏳ Analyzing...",
+    "under_review": "Under manual review",
+    "confidence": "Confidence: {{percent}}%",
+    "appeal_prompt": "Disagree with the result? You can appeal and an admin will review it manually.",
+    "appeal_placeholder": "Explain why you believe there was cheating...",
+    "appeal_submit": "Appeal for human review",
+    "appeal_sent": "✓ Appeal submitted. An admin will review it soon.",
+    "verdict": {
+      "CLEAN": "✓ Clean",
+      "SUSPICIOUS": "⚠ Suspicious",
+      "CHEATING": "🚫 Cheating detected"
+    }
+  }
+}
