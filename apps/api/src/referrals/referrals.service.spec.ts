@@ -89,7 +89,7 @@ describe('ReferralsService', () => {
     it('returns null code and link when the user does not exist', async () => {
       platformConfig.getBoolean.mockResolvedValue(true);
       repo.findUserWithReferralCode.mockResolvedValue(null);
-      config.get.mockReturnValue('https://megachess.io');
+      config.get.mockReturnValue('https://myapp.example.com');
       const result = await service.getMyCode('missing');
       expect(result).toEqual({ referralCode: null, link: null });
     });
@@ -97,14 +97,14 @@ describe('ReferralsService', () => {
     it('returns the existing code and link without generating a new one', async () => {
       platformConfig.getBoolean.mockResolvedValue(true);
       repo.findUserWithReferralCode.mockResolvedValue({ id: 'u1', referralCode: 'EXIST123' } as any);
-      config.get.mockReturnValue('https://megachess.io');
+      config.get.mockReturnValue('https://myapp.example.com');
 
       const result = await service.getMyCode('u1');
 
       expect(repo.updateReferralCode).not.toHaveBeenCalled();
       expect(result).toEqual({
         referralCode: 'EXIST123',
-        link: 'https://megachess.io/register?ref=EXIST123',
+        link: 'https://myapp.example.com/register?ref=EXIST123',
       });
     });
 
@@ -112,13 +112,13 @@ describe('ReferralsService', () => {
       platformConfig.getBoolean.mockResolvedValue(true);
       repo.findUserWithReferralCode.mockResolvedValue({ id: 'u1', referralCode: null } as any);
       repo.findUserByReferralCode.mockResolvedValue(null);
-      config.get.mockReturnValue('https://megachess.io');
+      config.get.mockReturnValue('https://myapp.example.com');
 
       const result = await service.getMyCode('u1');
 
       expect(repo.updateReferralCode).toHaveBeenCalledWith('u1', expect.any(String));
       expect(result.referralCode).toEqual(expect.any(String));
-      expect(result.link).toContain('https://megachess.io/register?ref=');
+      expect(result.link).toContain('https://myapp.example.com/register?ref=');
     });
 
     it('retries generation when a collision occurs and eventually succeeds', async () => {
@@ -127,7 +127,7 @@ describe('ReferralsService', () => {
       repo.findUserByReferralCode
         .mockResolvedValueOnce({ id: 'other' } as any)
         .mockResolvedValueOnce(null);
-      config.get.mockReturnValue('https://megachess.io');
+      config.get.mockReturnValue('https://myapp.example.com');
 
       const result = await service.getMyCode('u1');
 
@@ -143,7 +143,7 @@ describe('ReferralsService', () => {
 
       const result = await service.getMyCode('u1');
 
-      expect(result.link).toBe('https://megachess.io/register?ref=ABC12345');
+      expect(result.link).toBe('http://localhost/register?ref=ABC12345');
     });
   });
 });

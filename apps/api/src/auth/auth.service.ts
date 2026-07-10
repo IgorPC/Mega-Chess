@@ -38,7 +38,7 @@ export class AuthService {
     @Inject(REDIS_CLIENT) private redis: Redis,
   ) {
     this.jwtSecret = config.getOrThrow<string>('JWT_SECRET');
-    this.appUrl = config.get<string>('APP_URL', 'https://megachess.io');
+    this.appUrl = config.get<string>('APP_URL', 'http://localhost');
   }
 
   async register(dto: RegisterDto, req?: any) {

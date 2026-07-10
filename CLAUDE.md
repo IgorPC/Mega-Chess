@@ -113,8 +113,6 @@ Namespace `/game`. JWT obrigatório no handshake.
 - Débitos de duelo/torneio: pessimistic lock no banco para evitar race conditions
 - Webhook Asaas: validado via header `asaas-access-token`; token em `ASAAS_WEBHOOK_TOKEN`
 
-Documentação completa: `apps/docs/ASAAS_INTEGRATION.md`
-
 ---
 
 ## Torneios
@@ -131,8 +129,6 @@ Documentação completa: `apps/docs/ASAAS_INTEGRATION.md`
 - 3º lugar para torneios com ≥8 jogadores
 - Rodadas agendadas automaticamente a cada 30s após conclusão da rodada anterior
 - Auto-cancelamento por estagnação: aviso com 24h, cancelamento com 48h sem novos jogadores
-
-Documentação completa: `apps/docs/BUSINESS_MODEL.md`
 
 ---
 
@@ -155,8 +151,6 @@ Aplicação separada em `apps/admin/` (porta 5174). Autenticação independente 
 **Módulos implementados:** Dashboard, Users (lista + detalhe), Transactions, Tournaments (lista + detalhe), Support (tickets + detalhe), Staff, Maintenance, AuditLogs, UserActivity.
 
 **IA no admin:** análise de risco de usuário, chatbot, sumário de ticket, relatório de partida, perfil comportamental — tudo via DeepSeek.
-
-Documentação completa: `apps/docs/ADMIN_PANEL.md`
 
 ---
 

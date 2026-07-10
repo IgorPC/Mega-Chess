@@ -1,223 +1,286 @@
-# Mega Chess Online
+<p align="center">
+  <img src="LOGO-MEGA-CHESS.png" alt="Mega Chess Online" width="360" />
+</p>
 
-Plataforma de xadrez competitivo online com matchmaking em tempo real, sistema de torneios, economia interna (Chess Coins) e integração PIX via Asaas.
+<h1 align="center">Mega Chess Online</h1>
 
----
-
-## Stack
-
-| Camada | Tecnologia |
-|--------|-----------|
-| Frontend web | React 18 + Vite |
-| Backend | NestJS 10 |
-| Banco de dados | PostgreSQL 16 |
-| Cache / filas | Redis 7 |
-| Comunicação em tempo real | Socket.IO (NestJS Gateway) |
-| ORM | TypeORM |
-| Autenticação | JWT (access 15min + refresh 7d) |
-| Pagamentos | Asaas (PIX) |
-| IA / anti-cheat | DeepSeek API |
-| Painel admin | React 18 + Material UI |
-| Containerização | Docker Compose |
+<p align="center">
+  A full-stack, real-time competitive chess platform with matchmaking, tournaments,
+  an internal wallet with real PIX payments, and AI-assisted anti-cheat / support.
+</p>
 
 ---
 
-## Estrutura do monorepo
+## About the project
+
+Mega Chess Online is a portfolio project built to showcase a production-style, full-stack
+real-time application — not just a toy chess board. Players are matched by ELO or by paid
+"duel" queues, play live games over WebSockets with synced clocks, and can join
+bracket-style tournaments. The platform has its own in-app currency (Chess Coins),
+backed by real PIX deposits/withdrawals through a payment gateway, and uses an LLM
+to help detect cheating and triage support tickets. A separate admin panel gives staff
+visibility into users, finances, tournaments and support.
+
+The repo is a monorepo with three apps: the **API** (NestJS), the **web client** (React),
+and the **admin panel** (React + Material UI).
+
+---
+
+## Tech stack
+
+Roughly in order of how central each piece is to the project:
+
+| | Technology | Role |
+|---|---|---|
+| <img src="https://cdn.simpleicons.org/nestjs" width="20"/> | **NestJS** | Backend framework — modular, domain-driven API |
+| <img src="https://cdn.simpleicons.org/typescript" width="20"/> | **TypeScript** | End-to-end, used across API, web and admin |
+| <img src="https://cdn.simpleicons.org/react" width="20"/> | **React 18** | Web client and admin panel UI |
+| <img src="https://cdn.simpleicons.org/socketdotio" width="20"/> | **Socket.IO** | Real-time game state, clocks, chat, presence |
+| <img src="https://cdn.simpleicons.org/postgresql" width="20"/> | **PostgreSQL** | Primary datastore |
+| <img src="https://cdn.simpleicons.org/typeorm" width="20"/> | **TypeORM** | ORM / entities / migrations-style schema sync |
+| <img src="https://cdn.simpleicons.org/redis" width="20"/> | **Redis** | Sessions, OTP codes, login throttling, caches |
+| <img src="https://cdn.simpleicons.org/vite" width="20"/> | **Vite** | Build tooling for both React apps |
+| <img src="https://cdn.simpleicons.org/mui" width="20"/> | **Material UI** | Admin panel component library |
+| <img src="https://cdn.simpleicons.org/jsonwebtokens" width="20"/> | **JWT** | Access/refresh authentication |
+| <img src="https://cdn.simpleicons.org/pix" width="20"/> | **Asaas (PIX)** | Payment gateway for deposits & withdrawals |
+| <img src="https://cdn.simpleicons.org/openai" width="20"/> | **DeepSeek API** | LLM used for anti-cheat, risk analysis & support |
+| <img src="https://cdn.simpleicons.org/docker" width="20"/> | **Docker Compose** | Local dev and production containers, reverse-proxied by Traefik in prod |
+
+---
+
+## Interesting concepts applied
+
+- **Real-time gameplay over WebSockets** — a single authenticated Socket.IO namespace handles
+  live moves, per-second clock sync, chat, presence and matchmaking notifications, all scoped
+  into per-user and per-match rooms.
+- **Payment gateway integration** — real PIX deposits and withdrawals via Asaas, driven by
+  signed webhooks rather than client-reported state, so wallet balances can't be spoofed.
+- **Money-safe concurrency** — wallet debits/credits (duel entry fees, tournament prizes,
+  withdrawals) use pessimistic row locks to prevent race conditions on concurrent requests.
+- **AI-assisted risk & support** — an LLM (DeepSeek) reviews withdrawal patterns for
+  suspicious play before releasing funds, and powers admin-side ticket summaries and a
+  support chatbot.
+- **Layered authentication** — JWT access/refresh tokens, enforced single active session
+  per account, and a separate two-factor (password + emailed OTP) login flow for the admin
+  panel.
+- **Abuse mitigation** — IP blacklisting middleware, global rate limiting, and Redis-backed
+  lockouts after repeated failed OTP attempts.
+- **Scheduled/background work without a queue system** — interval-based jobs handle
+  tournament round progression, queue cleanup, and stagnant-tournament auto-cancellation,
+  entirely in-process.
+- **Multi-domain production deployment** — Traefik routes separate subdomains (app, admin,
+  staging vs. production) to the right container purely from Docker Compose labels, with
+  automatic TLS via Let's Encrypt.
+- **Internationalization** — both backend error/notification strings and the web UI are
+  translated through i18n layers (`nestjs-i18n` / `react-i18next`).
+- **Deterministic tournament brackets** — brackets are generated with a seeded shuffle
+  (seed = tournament ID) so pairings are reproducible and auditable.
+
+---
+
+## Backend structure (`apps/api`)
+
+NestJS, organized as one module per business domain:
 
 ```
-mega-chess/
-├── docker-compose.yml          # desenvolvimento local
-├── docker-compose.prod.yml     # produção (Coolify / Traefik)
-├── .env.prod.example
-├── apps/
-│   ├── api/                    # NestJS — porta 3000
-│   │   └── src/
-│   │       ├── auth/
-│   │       ├── users/
-│   │       ├── matches/
-│   │       ├── matchmaking/
-│   │       ├── game/           # WebSocket Gateway
-│   │       ├── friends/
-│   │       ├── messages/
-│   │       ├── notifications/
-│   │       ├── ranking/
-│   │       ├── reviews/
-│   │       ├── wallet/
-│   │       ├── asaas/
-│   │       ├── webhooks/
-│   │       ├── tournaments/
-│   │       ├── deepseek/
-│   │       ├── user-activity/
-│   │       ├── platform-config/
-│   │       ├── support/
-│   │       └── admin/
-│   ├── web/                    # React — porta 5173 (dev) / 80 (prod)
-│   │   └── src/
-│   │       ├── pages/
-│   │       ├── components/
-│   │       ├── hooks/
-│   │       ├── store/          # Zustand stores
-│   │       └── lib/
-│   └── admin/                  # Painel admin — porta 5174
-│       └── src/
-│           ├── pages/
-│           ├── components/
-│           └── lib/
-└── apps/docs/
-    ├── BUSINESS_MODEL.md
-    ├── ASAAS_INTEGRATION.md
-    └── ADMIN_PANEL.md
+apps/api/src/
+├── auth/              Registration, login, JWT refresh, email verification
+├── users/              Profiles, avatars, public user pages
+├── matches/            Match history, PGN storage
+├── matchmaking/        Casual (ELO) and paid duel queues, direct challenges
+├── game/                WebSocket gateway — moves, clocks, chat, game state
+├── friends/             Friend requests, online presence
+├── messages/            Private chat between friends
+├── notifications/       Real-time + persisted notifications
+├── ranking/             ELO leaderboard
+├── reviews/             Post-match player reviews
+├── wallet/              Chess Coins balance, deposits, withdrawals, ledger
+├── asaas/               Payment gateway client (PIX)
+├── webhooks/            Signed webhook receivers (Asaas)
+├── tournaments/         Duels, bracket tournaments, prizes, anti-fraud checks
+├── deepseek/            LLM client — anti-cheat, risk analysis, support AI
+├── user-activity/       Behavioral tracking used for anti-cheat
+├── platform-config/     Dynamic settings (e.g. maintenance mode)
+├── platform-revenue/    Rake/fee tracking for the platform's own revenue
+├── referrals/           Referral program
+├── suggestions/         In-app user feedback/suggestions
+├── support/             Support ticket system
+├── bots/                Offline vs-AI opponent logic
+├── email/               Transactional email sending (SMTP)
+├── i18n/                Backend translation strings
+├── admin/               Admin-only endpoints, roles, audit log, IP blacklist
+├── entities/            TypeORM entities (single source of schema truth)
+├── database/            Database module/config
+└── common/              Shared guards, middleware, decorators, filters
 ```
 
 ---
 
-## Rodando localmente
+## Frontend structure
 
-### Pré-requisito
+### Web client (`apps/web`)
 
-Docker Desktop instalado.
+```
+apps/web/src/
+├── pages/          One component per route (lobby, game, profile, wallet, etc.)
+├── components/     Reusable UI building blocks
+├── hooks/          Custom hooks (sound effects, auth, socket helpers, ...)
+├── store/          Zustand stores: auth, game, social
+├── lib/            API client (axios) and Socket.IO client setup
+├── locales/        i18n translation files
+├── i18n/           i18n configuration
+├── styles/         Global styles and design tokens
+└── assets/         Static assets (logo, icons)
+```
+
+### Admin panel (`apps/admin`)
+
+```
+apps/admin/src/
+├── pages/          Dashboard, Users, Transactions, Tournaments, Support, Staff, Maintenance
+├── components/     Charts, data tables, layout and UI helpers
+├── guards/         Route guards (auth + role-based access)
+├── store/          Admin auth store (Zustand)
+└── lib/            Admin API client and socket setup
+```
+
+---
+
+## Environment variables
+
+The API reads its configuration from two different `.env` files depending on how it's
+run — same app, two execution paths:
+
+- **`.env.example`** (project root) → copy to `.env`, used by `docker-compose.prod.yml`
+  (production). Compose injects these into the containers; the required ones (no
+  default value) make the stack refuse to start with a clear error if missing.
+- **`apps/api/.env.example`** → copy to `apps/api/.env`, used when running the API
+  directly with `npm run start:dev` (local development).
+
+Variables appear in both files where the same app needs them in both contexts, with
+different values (e.g. real JWT secrets in prod vs. throwaway ones locally).
+
+### Database (PostgreSQL)
+
+| Variable | Required | Description |
+|---|---|---|
+| `POSTGRES_DB` | No (default `megachess`) | Database name created inside the Postgres container. Production only. |
+| `POSTGRES_USER` | No (default `chess`) | Database user created inside the Postgres container. Production only. |
+| `POSTGRES_PASSWORD` | **Yes** (prod) | Database password. Generate with `openssl rand -base64 32`. |
+| `DATABASE_URL` | **Yes** (local) | Full connection string: `postgresql://<user>:<password>@<host>:<port>/<database>`. In production this is built automatically from the three variables above — you don't set it directly. |
+
+### Authentication (JWT)
+
+| Variable | Required | Description |
+|---|---|---|
+| `JWT_SECRET` | **Yes** | Signs player access tokens. Generate with `openssl rand -hex 64`. |
+| `JWT_REFRESH_SECRET` | **Yes** | Reserved for refresh-token signing — use a different random value than `JWT_SECRET`. |
+| `ADMIN_JWT_SECRET` | **Yes** | Signs admin-panel JWTs — use a different random value than the two above. |
+
+### Public URLs
+
+| Variable | Required | Description |
+|---|---|---|
+| `APP_URL` | **Yes** | Full public URL of the player-facing web app (e.g. `https://myapp.example.com`). Drives CORS, the frontend build, and links in transactional emails. No domain is hardcoded anywhere else in the stack. |
+| `ADMIN_URL` | **Yes** | Full public URL of the admin panel (e.g. `https://admin.myapp.example.com`). Same role as `APP_URL`, for the admin app. |
+| `ADMIN_DOMAIN` | **Yes** (prod) | Bare hostname of the admin panel — no protocol, must match the host portion of `ADMIN_URL` (e.g. `admin.myapp.example.com`). Docker Compose can't strip the protocol from a URL at interpolation time, so Traefik's routing rule needs it as its own variable. |
+| `API_UPSTREAM` | No (default `api:3000`) | Internal Docker network address of the API service. Only change it if you rename the `api` service. |
+
+### Payment gateway — Asaas (PIX)
+
+| Variable | Required | Description |
+|---|---|---|
+| `ASAAS_API_KEY` | No | API key from your Asaas account: **Settings → Integrations → API Key**. Leave empty to disable deposits/withdrawals. In Coolify, this value starts with `$` — check **"Is Literal?"** for this variable or Compose will try to interpret it as a shell variable. |
+| `ASAAS_WEBHOOK_TOKEN` | No | Shared secret configured on the Asaas webhook (**Settings → Webhooks**). Validated against the `asaas-access-token` header on every incoming webhook call. |
+| `ASAAS_ENV` | No (default `sandbox`) | `sandbox` \| `production` — which Asaas environment to call. |
+
+### AI — DeepSeek API
+
+| Variable | Required | Description |
+|---|---|---|
+| `DEEPSEEK_API_KEY` | No | API key from [platform.deepseek.com](https://platform.deepseek.com). Leave empty to disable anti-cheat risk analysis, the admin chatbot, and ticket summaries. |
+
+### Transactional email (SMTP)
+
+| Variable | Required | Description |
+|---|---|---|
+| `SMTP_HOST` | **Yes** | SMTP server hostname (e.g. `smtp.gmail.com`, `smtp.hostinger.com`, `smtp.sendgrid.net`). |
+| `SMTP_PORT` | No (default `465`) | `465` (implicit SSL) or `587` (STARTTLS). |
+| `SMTP_USER` | **Yes** | SMTP account username — usually the sending email address. |
+| `SMTP_PASS` | **Yes** | SMTP account password, or an app-specific password (e.g. Gmail App Passwords). |
+| `SMTP_FROM` | No | `"From"` header, format `"Display Name <email@yourdomain.com>"`. Falls back to `SMTP_USER` if left empty. |
+
+### Chess engine (local dev only)
+
+| Variable | Required | Description |
+|---|---|---|
+| `STOCKFISH_PATH` | No (default `/usr/bin/stockfish`) | Path to a Stockfish binary, used by the offline vs-AI opponent. |
+
+### One-off admin bootstrap scripts (local dev only)
+
+Only read by `apps/api/scripts/seed-admin.js` and `apps/api/scripts/reset-db.js` when run
+manually — the API server itself ignores these.
+
+| Variable | Required | Description |
+|---|---|---|
+| `ADMIN_EMAIL` | No (default `admin@example.com`) | Email for the bootstrapped first admin account. |
+| `ADMIN_PASSWORD` | No (default `ChangeMe123!`) | Password for the bootstrapped first admin account — change it immediately after first login. |
+| `ADMIN_NAME` | No (default `Admin`) | Display name for the bootstrapped first admin account. |
+
+---
+
+## Deployment
+
+### Running locally
+
+Requires Docker Desktop.
 
 ```bash
 docker compose up --build
 ```
 
-| Serviço | URL |
-|---------|-----|
-| Frontend (React) | http://localhost:5173 |
+| Service | URL |
+|---|---|
+| Web client (React) | http://localhost |
 | API (NestJS) | http://localhost:3000 |
-| Painel admin | http://localhost:5174 |
+| Admin panel | http://localhost:5174 |
 | PostgreSQL | localhost:5432 |
 | Redis | localhost:6379 |
 
-Na primeira execução o banco é criado automaticamente pelo TypeORM (`synchronize: true`).
+The local `docker-compose.yml` doesn't read a `.env` file — every value is hardcoded for
+convenience (throwaway JWT secrets, local Postgres credentials). On first run, TypeORM
+creates the schema automatically (`synchronize: true` outside production).
 
-### Variáveis de ambiente (desenvolvimento)
+To exercise email-dependent flows (signup verification, password reset) locally, copy
+`apps/api/.env.example` to `apps/api/.env`, fill in real SMTP credentials, and run the API
+directly with `npm run start:dev` instead of through Docker.
 
-**`apps/api/.env`**
-```env
-DATABASE_URL=postgresql://chess:chess@localhost:5432/megachess
-REDIS_URL=redis://localhost:6379
-JWT_SECRET=dev_secret
-JWT_REFRESH_SECRET=dev_refresh_secret
-ADMIN_JWT_SECRET=dev_admin_secret
-PORT=3000
-CORS_ORIGIN=http://localhost,http://localhost:5174
-ASAAS_API_KEY=          # opcional em dev
-ASAAS_WEBHOOK_TOKEN=    # opcional em dev
-ASAAS_ENV=sandbox
-DEEPSEEK_API_KEY=       # opcional em dev
-APP_URL=http://localhost # base dos links nos emails
-SMTP_HOST=              # obrigatório para emails (ex: smtp.hostinger.com)
-SMTP_PORT=465
-SMTP_USER=
-SMTP_PASS=
-```
+### Production deployment (Coolify + Traefik)
 
-**`apps/web/.env`**
-```env
-VITE_API_URL=http://localhost:3000
-VITE_WS_URL=http://localhost:3000
-```
+This project is built to deploy as a single **Docker Compose** resource on
+[Coolify](https://coolify.io), with Traefik handling TLS and routing.
 
----
+**Prerequisites:** a VPS with Coolify installed, and a domain you control the DNS for.
 
-## Deploy em produção
+**1. DNS** — point an `A` record for your app domain and your admin subdomain at the
+VPS's IP address (e.g. `myapp.example.com` and `admin.myapp.example.com`).
 
-O projeto usa **Coolify v4 + Traefik** em VPS Hostinger. As imagens são buildadas via `docker-compose.prod.yml`.
+**2. Create the resource** — in Coolify, create a new resource of type **Docker
+Compose**, pointing at this repository and the branch you want to deploy, with
+**Compose file** set to `docker-compose.prod.yml`.
 
-### Ambientes
+**3. Set environment variables** — copy every variable from the [Environment
+variables](#environment-variables) section above into the resource's environment panel,
+using your real production values (`APP_URL`/`ADMIN_URL` set to the domains from step 1).
+Any value that starts with `$` (notably `ASAAS_API_KEY`) needs **"Is Literal?"** checked,
+or Compose will try to interpret it as a shell variable reference.
 
-| Ambiente | Web | Admin |
-|----------|-----|-------|
-| Homologação | `homologa.megachess.io` | `homologa.admin.megachess.io` |
-| Produção | `megachess.io` | `admin.megachess.io` |
+**4. Deploy** — click **Deploy**. Traefik issues TLS certificates automatically via
+Let's Encrypt once DNS has propagated. The `web` and `admin` services expose port 80
+internally only (`expose`, not `ports`) — all public routing goes through Traefik.
 
----
-
-### 1. DNS (Hostinger)
-
-Adicione registros `A` apontando para o IP do VPS para cada subdomínio:
-
-| Tipo | Nome | Valor |
-|------|------|-------|
-| A | `homologa` | IP do VPS |
-| A | `homologa.admin` | IP do VPS |
-
-Em produção, adicionar também `@` (raiz) e `admin`.
-
----
-
-### 2. Variáveis de ambiente no Coolify
-
-Configure todas as variáveis abaixo no painel do resource. Valores que começam com `$` precisam estar com **"Is Literal?" marcado** no Coolify (ex: `ASAAS_API_KEY`).
-
-```env
-# Banco de dados
-POSTGRES_DB=megachess
-POSTGRES_USER=chess
-POSTGRES_PASSWORD=<senha forte>
-
-# JWT — strings longas e aleatórias
-JWT_SECRET=
-JWT_REFRESH_SECRET=
-ADMIN_JWT_SECRET=
-
-# URLs públicas dos frontends
-APP_URL=https://homologa.megachess.io
-ADMIN_URL=https://homologa.admin.megachess.io
-
-# Domínio do admin (usado nas labels do Traefik)
-ADMIN_DOMAIN=homologa.admin.megachess.io
-
-# Asaas — marcar "Is Literal?" pois o valor começa com $aact_
-ASAAS_API_KEY=
-ASAAS_WEBHOOK_TOKEN=
-ASAAS_ENV=sandbox   # ou production
-
-# DeepSeek
-DEEPSEEK_API_KEY=
-
-# Email SMTP
-SMTP_HOST=smtp.hostinger.com
-SMTP_PORT=465
-SMTP_USER=automatico@megachess.io
-SMTP_PASS=
-# SMTP_FROM="Mega Chess <automatico@megachess.io>"  # opcional
-
-# Opcional — padrão já é api:3000 (nome do serviço na rede Docker)
-# API_UPSTREAM=api:3000
-```
-
----
-
-### 3. Configurar resource no Coolify
-
-1. Crie um resource do tipo **Docker Compose**
-2. Repositório: `IgorPC/Mega-Chess-Online`, branch `development`
-3. Compose file: `docker-compose.prod.yml`
-4. Configure as variáveis acima
-5. Clique em **Deploy**
-
-O Traefik emite SSL automaticamente via Let's Encrypt. Os serviços `web` e `admin` usam `expose: 80` (sem `ports:`) — o roteamento é feito pelas labels do Traefik no compose.
-
----
-
-### 4. Liberar espaço no servidor antes do deploy
-
-```bash
-# Remove imagens e build cache não utilizados
-docker system prune -af
-
-# Ver espaço disponível
-df -h /
-docker system df
-```
-
----
-
-### 5. Swap (obrigatório no VPS de 3.8GB)
-
-Execute uma vez após provisionar o servidor para evitar OOM durante builds:
+**Low-memory VPS note:** a 2GB swap file prevents out-of-memory errors during the
+frontend builds on small droplets:
 
 ```bash
 fallocate -l 2G /swapfile
@@ -226,247 +289,3 @@ mkswap /swapfile
 swapon /swapfile
 echo '/swapfile none swap sw 0 0' >> /etc/fstab
 ```
-
----
-
-### Troubleshooting de deploy
-
-| Erro | Causa | Solução |
-|------|-------|---------|
-| `npm run build` exit code 2 no container admin | Erro de TypeScript | Rode `npx tsc --noEmit` em `apps/admin` localmente para ver os erros |
-| `WARNING: variable is not set` para `ASAAS_API_KEY` | O valor começa com `$` e o Docker Compose interpreta como variável de shell | Marcar **"Is Literal?"** no Coolify para essa variável |
-| "no server available" no admin | Traefik sem regra de roteamento para o subdomínio | Verificar se `ADMIN_DOMAIN` está configurado e as labels estão no compose; fazer redeploy |
-| Container sobe mas SSL não emite | DNS ainda não propagado | Aguardar propagação do DNS e fazer redeploy para o Traefik tentar novamente |
-| OOM durante build | Falta de memória/swap | Criar swap de 2GB (ver seção acima) |
-
----
-
-## Funcionalidades
-
-### Autenticação
-- Registro com email, nome, apelido e senha (bcrypt)
-- Verificação de email obrigatória — link com token UUID (TTL 24h) enviado via SMTP
-- Login bloqueado até email confirmado; resend disponível na tela de login e no pós-cadastro
-- Login retorna `access_token` (15min) e `refresh_token` (7d)
-- Sessão única por usuário — login em novo dispositivo invalida a sessão anterior
-- Recuperação de senha via email (link com token de uso único, TTL 1h)
-- Upload de avatar via Multer (JPEG/PNG/WebP até 2MB)
-
-### Matchmaking
-- **Casual**: fila única com pareamento por ELO
-- **Duelo**: filas separadas por tipo (Flash 3+2 / Giant 10+0) e taxa de entrada (6 / 10 / 20 CC); débito automático ao criar a partida
-- Indicador de atividade por fila em tempo real: Baixa / Média / Alta (polling 10s)
-- Desafio direto entre amigos com 60s de TTL
-
-### Partidas online
-- Tabuleiro com `react-chessboard` + `chess.js` para validação client-side
-- Relógio com incremento por jogada (formato `tempo+incremento`, e.g. `3+2`)
-- Detecção automática de xeque-mate, empate, abandono e timeout
-- Chat em tempo real dentro da partida
-- Sons: início, movimento, captura, xeque, vitória, derrota, empate (mutável)
-- Promoção de peão via modal customizado
-
-### Partidas offline (vs IA)
-- Modo prática sem impacto no ELO
-- Três dificuldades: Fácil / Médio / Difícil
-- Delay de 2s antes da jogada da IA
-- Mesmos sons da partida online + botão de mutar
-
-### Torneios e Duelos
-- **Duelos**: pares 1v1 ranqueados com prêmio automático (90% do pool, rake 10%)
-- **Torneios customizados**: criados por usuários, sistema de chaves eliminatórias (4–64 jogadores), proteção por senha, taxa de criação e de entrada
-- Geração automática do bracket, agendamento de rodadas, partida pelo 3º lugar para torneios com ≥8 jogadores
-- Análise anti-fraude com DeepSeek antes de liberar prêmios (SLA 60min)
-
-### Economia (Chess Coins — CC)
-- 1 CC = 1 BRL
-- Depósitos via PIX usando Asaas (QR Code, validade 3h)
-- Saques com delay anti-cheat de 25min e análise de risco por IA
-- Taxa de saque: 2% (mínimo 2 CC)
-- Histórico completo de transações
-- **Receita da plataforma rastreada explicitamente** — rake de duelos/torneios, taxas de criação e saque registrados em `platform_revenue`
-
-### Sistema social
-- Lista de amigos com status online/offline em tempo real
-- Envio/aceitação/recusa de amizade e desafios
-- Notificações persistidas no banco + entrega em tempo real via WebSocket
-
-### Ranking
-- ELO calculado por Elo padrão (K=32)
-- Top 100 global
-
-### Painel admin (`/admin`)
-- Autenticação separada com roles: SUPORTE, FINANCEIRO, OPERADOR, ADMIN
-- Login em 2 etapas: email + senha → OTP de 6 dígitos enviado por email (TTL 10min, bloqueio após 3 tentativas erradas)
-- Sessão única por admin — novo login invalida sessão anterior imediatamente
-- Novo admin criado pelo Staff recebe senha temporária por email e é forçado a redefinir no primeiro acesso
-- Dashboards de KPIs, usuários, transações, torneios, suporte e manutenção
-- Aba "Visão Financeira" (ADMIN): totais de depósitos, saques, saldo em carteiras e rake acumulado
-- Gerenciamento de staff e tickets de suporte
-- Chatbot e análise de risco via DeepSeek
-- Log de auditoria de todas as ações administrativas
-- **Receita da plataforma**: summary por tipo, histórico paginado e chart diário via `GET /admin/platform-revenue/*`
-
----
-
-## API — Endpoints principais
-
-Prefixo: `/api/v1`
-
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| `POST` | `/auth/register` | Criar conta (envia email de verificação) |
-| `POST` | `/auth/login` | Login (requer email verificado) |
-| `GET` | `/auth/verify-email?token=` | Confirmar email |
-| `POST` | `/auth/resend-verification` | Reenviar email de confirmação |
-| `POST` | `/auth/forgot-password` | Solicitar link de recuperação de senha |
-| `POST` | `/auth/reset-password` | Redefinir senha via token |
-| `POST` | `/auth/refresh` | Renovar token |
-| `POST` | `/auth/logout` | Logout |
-| `GET` | `/users/me` | Perfil do usuário logado |
-| `PATCH` | `/users/me` | Atualizar nome e bio |
-| `POST` | `/users/me/avatar` | Upload de avatar |
-| `GET` | `/users/:nickname` | Perfil público |
-| `POST` | `/matchmaking/queue` | Entrar na fila casual |
-| `DELETE` | `/matchmaking/queue` | Sair da fila casual |
-| `GET` | `/matchmaking/sizes` | Tamanho de todas as filas |
-| `POST` | `/matchmaking/challenge` | Enviar desafio direto |
-| `POST` | `/matchmaking/challenge/accept` | Aceitar desafio |
-| `POST` | `/matchmaking/challenge/deny` | Recusar desafio |
-| `POST` | `/matchmaking/duel/join` | Entrar na fila de duelo |
-| `DELETE` | `/matchmaking/duel/leave` | Sair da fila de duelo |
-| `GET` | `/wallet/balance` | Saldo CC do usuário |
-| `POST` | `/wallet/deposit` | Criar depósito PIX |
-| `POST` | `/wallet/withdraw` | Solicitar saque |
-| `GET` | `/wallet/transactions` | Histórico de transações |
-| `GET` | `/tournaments` | Listar torneios |
-| `POST` | `/tournaments` | Criar torneio |
-| `POST` | `/tournaments/:id/join` | Entrar em torneio |
-| `POST` | `/tournaments/:id/start` | Iniciar torneio (criador) |
-| `GET` | `/ranking` | Top 100 jogadores |
-| `GET` | `/notifications` | Notificações não lidas |
-| `PATCH` | `/notifications/read-all` | Marcar todas como lidas |
-
----
-
-## WebSocket — Eventos
-
-Namespace `/game` — autenticado via JWT no handshake.
-
-| Evento (client → server) | Descrição |
-|--------------------------|-----------|
-| `join_social` | Inicializa presença online |
-| `join_game` | Entra na sala da partida |
-| `move` | Envia jogada |
-| `forfeit` | Desistência |
-| `leave_game` | Sai da sala (limpa relógio residual) |
-| `chat_message` | Mensagem no chat da partida |
-| `challenge_user` | Desafiar amigo |
-| `accept_challenge` | Aceitar desafio |
-| `deny_challenge` | Recusar desafio |
-
-| Evento (server → client) | Descrição |
-|--------------------------|-----------|
-| `game_state` | Estado completo da partida ao entrar |
-| `move_broadcast` | Jogada validada propagada |
-| `clock_update` | Tempo restante de ambos (intervalo 1s) |
-| `game_over` | Resultado final com motivo |
-| `match_found` | Partida encontrada pelo matchmaking |
-| `friends_status` | Lista de amigos online ao conectar |
-| `user_online` / `user_offline` | Status de amigo mudou |
-| `friend_challenge` | Convite de partida recebido |
-| `duel_invite` | Convite de duelo recebido |
-| `notification` | Notificação genérica |
-
----
-
-## Comandos úteis
-
-```bash
-# Ver logs de um serviço específico
-docker compose logs -f api
-docker compose logs -f web
-
-# Reiniciar apenas a API
-docker compose restart api
-
-# Parar tudo e remover volumes (limpa o banco)
-docker compose down -v
-
-# Acessar o banco diretamente (desenvolvimento local)
-docker exec -it megachess-db psql -U chess -d megachess
-```
-
-**Em produção/homologação**, o container `db` não tem `container_name` fixo no `docker-compose.prod.yml` (o Coolify define o nome) — use `docker compose exec` a partir da pasta do projeto no servidor, ou encontre o container pelo nome do serviço:
-
-```bash
-# Via docker compose (recomendado — não depende do nome exato do container)
-docker compose -f docker-compose.prod.yml exec db psql -U ${POSTGRES_USER:-chess} -d ${POSTGRES_DB:-megachess}
-
-# Alternativa: localizar o container manualmente e usar docker exec
-docker ps | grep db
-docker exec -it <nome-do-container-db> psql -U chess -d megachess
-```
-
----
-
-### Limpar espaço em disco no servidor (Coolify)
-
-Execute no servidor via SSH. Limpa imagens antigas, cache de build e containers parados — sem afetar volumes de dados em uso:
-
-```bash
-# Ver uso atual
-docker system df
-
-# Limpar cache de build e imagens não utilizadas (maior impacto, mais seguro)
-docker builder prune -af && docker image prune -af
-
-# Limpeza completa (containers parados + volumes órfãos + redes + cache)
-# ⚠️ Não remove volumes de containers em execução (pg_data, redis_data, uploads)
-docker system prune -af --volumes
-
-# Ver espaço liberado
-df -h /
-```
-
----
-
-### Resetar o banco e criar o primeiro admin
-
-> Use em homologação para iniciar os testes do zero. Em produção, use com cautela — apaga todos os dados.
-
-**1. Derrubar os containers e apagar o volume do banco:**
-
-```bash
-# Produção / homologação (via docker-compose.prod.yml)
-docker compose -f docker-compose.prod.yml down -v
-
-# Desenvolvimento local
-docker compose down -v
-```
-
-**2. Subir novamente (TypeORM recria todas as tabelas automaticamente):**
-
-```bash
-# Produção / homologação
-docker compose -f docker-compose.prod.yml up -d
-
-# Desenvolvimento local
-docker compose up -d
-```
-
-**3. Resetar o banco e criar o primeiro admin (tudo em um comando):**
-
-```bash
-# Encontrar o nome do container da API
-docker ps | grep api
-
-# Apaga todos os dados e cria o admin inicial
-docker exec -it <nome-do-container-api> \
-  sh -c 'ADMIN_EMAIL=admin@megachess.io ADMIN_PASSWORD=SuaSenhaForte123! ADMIN_NAME="Admin" node scripts/reset-db.js'
-```
-
-> ⚠️ `reset-db.js` apaga **todos os dados** de todas as tabelas e cria apenas o admin.  
-> Use `seed-admin.js` se quiser apenas criar o admin **sem apagar dados existentes**.
->
-> Os scripts ficam em `apps/api/scripts/` e são copiados para dentro do container no build Docker.

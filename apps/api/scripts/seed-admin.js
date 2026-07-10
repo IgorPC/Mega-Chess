@@ -6,7 +6,7 @@
  *
  * Variáveis de ambiente (todas opcionais — têm defaults):
  *   DATABASE_URL    postgresql://chess:chess@localhost:5432/megachess
- *   ADMIN_EMAIL     admin@megachess.io
+ *   ADMIN_EMAIL     admin@example.com
  *   ADMIN_PASSWORD  Admin@123456!
  *   ADMIN_NAME      Admin
  */
@@ -17,7 +17,7 @@ const bcrypt = require('bcrypt');
 const DATABASE_URL =
   process.env.DATABASE_URL ?? 'postgresql://chess:chess@localhost:5432/megachess';
 
-const ADMIN_EMAIL    = process.env.ADMIN_EMAIL    ?? 'admin@megachess.io';
+const ADMIN_EMAIL    = process.env.ADMIN_EMAIL    ?? 'admin@example.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'Admin@123456!';
 const ADMIN_NAME     = process.env.ADMIN_NAME     ?? 'Admin';
 

@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-megachess}
       POSTGRES_USER: ${POSTGRES_USER:-chess}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,23 +26,26 @@ services:
       dockerfile: Dockerfile
     restart: always
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-chess}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-megachess}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-chess}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@db:5432/${POSTGRES_DB:-megachess}
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
-      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:?ADMIN_JWT_SECRET is required}
       PORT: 3000
-      # Múltiplas origens: web principal + painel admin (separadas por vírgula)
-      CORS_ORIGIN: ${APP_URL:-https://homologa.megachess.io},${ADMIN_URL:-https://homologa.admin.megachess.io}
+      # Full public URLs — also used to build links in transactional emails
+      APP_URL: ${APP_URL:?APP_URL is required (e.g. https://myapp.example.com)}
+      ADMIN_URL: ${ADMIN_URL:?ADMIN_URL is required (e.g. https://admin.myapp.example.com)}
+      # Multiple origins: main web app + admin panel (comma-separated)
+      CORS_ORIGIN: ${APP_URL},${ADMIN_URL}
       ASAAS_API_KEY: ${ASAAS_API_KEY}
       ASAAS_WEBHOOK_TOKEN: ${ASAAS_WEBHOOK_TOKEN}
       ASAAS_ENV: ${ASAAS_ENV:-sandbox}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
-      SMTP_HOST: ${SMTP_HOST:-smtp.hostinger.com}
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST is required}
       SMTP_PORT: ${SMTP_PORT:-465}
-      SMTP_USER: ${SMTP_USER:-automatico@megachess.io}
-      SMTP_PASS: ${SMTP_PASS}
-      SMTP_FROM: ${SMTP_FROM:-"Mega Chess <automatico@megachess.io>"}
+      SMTP_USER: ${SMTP_USER:?SMTP_USER is required}
+      SMTP_PASS: ${SMTP_PASS:?SMTP_PASS is required}
+      SMTP_FROM: ${SMTP_FROM}
     volumes:
       - uploads:/app/uploads
     depends_on:
@@ -54,8 +57,8 @@ services:
       context: ./apps/web
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${APP_URL:-https://homologa.megachess.io}
-        - VITE_WS_URL=${APP_URL:-https://homologa.megachess.io}
+        - VITE_API_URL=${APP_URL:?APP_URL is required}
+        - VITE_WS_URL=${APP_URL:?APP_URL is required}
     restart: always
     expose:
       - "80"
@@ -67,11 +70,11 @@ services:
       context: ./apps/admin
       dockerfile: Dockerfile
       args:
-        # VITE_API_URL é bakeado no bundle React em build time
-        - VITE_API_URL=${ADMIN_URL:-https://homologa.admin.megachess.io}
+        # VITE_API_URL is baked into the React bundle at build time
+        - VITE_API_URL=${ADMIN_URL:?ADMIN_URL is required}
     restart: always
     environment:
-      # API_UPSTREAM: nome do serviço api dentro da rede Docker
+      # API_UPSTREAM: api service name inside the Docker network
       API_UPSTREAM: ${API_UPSTREAM:-api:3000}
     expose:
       - "80"
@@ -79,7 +82,7 @@ services:
       - api
     labels:
       - traefik.enable=true
-      - traefik.http.routers.admin.rule=Host(`${ADMIN_DOMAIN:-homologa.admin.megachess.io}`)
+      - traefik.http.routers.admin.rule=Host(`${ADMIN_DOMAIN:?ADMIN_DOMAIN is required (hostname only, no protocol)}`)
       - traefik.http.routers.admin.entrypoints=https
       - traefik.http.routers.admin.tls=true
       - traefik.http.routers.admin.tls.certresolver=letsencrypt

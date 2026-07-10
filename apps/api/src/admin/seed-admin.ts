@@ -23,7 +23,7 @@ const ds = new DataSource({
 async function seed() {
   await ds.initialize();
 
-  const email    = process.env.ADMIN_EMAIL    ?? 'admin@megachess.io';
+  const email    = process.env.ADMIN_EMAIL    ?? 'admin@example.com';
   const password = process.env.ADMIN_PASSWORD ?? 'Admin@123456!';
   const name     = process.env.ADMIN_NAME     ?? 'Admin';
 

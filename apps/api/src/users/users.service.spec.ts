@@ -253,7 +253,7 @@ describe('UsersService', () => {
 
       expect(usersRepo.update).toHaveBeenCalledWith('u1', expect.objectContaining({
         isActive: false,
-        email: 'deleted_u1@deleted.megachess.io',
+        email: 'deleted_u1@deleted.invalid',
         nickname: 'deleted_u1',
         cpf: null,
         birthDate: null,

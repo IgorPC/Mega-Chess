@@ -135,7 +135,7 @@ export class UsersService {
     // the person register a brand-new account if they choose to.
     await this.users.update(userId, {
       isActive: false,
-      email: `deleted_${userId}@deleted.megachess.io`,
+      email: `deleted_${userId}@deleted.invalid`,
       nickname: `deleted_${userId}`,
       name: 'Usuário excluído',
       avatarUrl: null,

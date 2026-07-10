@@ -226,7 +226,7 @@ export default function App() {
         </p>
         <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 16 }}>
           Em caso de dúvidas, abra um ticket em{' '}
-          <a href="mailto:suporte@megachess.io" style={{ color: 'var(--color-primary)' }}>suporte@megachess.io</a>
+          <a href="mailto:suporte@example.com" style={{ color: 'var(--color-primary)' }}>suporte@example.com</a>
         </p>
       </div>
     );

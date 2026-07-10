@@ -78,11 +78,11 @@ describe('EmailService', () => {
       expect(call.html).toContain('https://app/verify?token=xyz');
     });
 
-    it('uses the default SMTP_FROM when none is configured', async () => {
+    it('falls back to SMTP_USER when SMTP_FROM is not configured', async () => {
       const service = await buildService();
       service.sendEmailConfirmation('user@test.com', 'Alice', 'https://app/verify');
 
-      expect(sendMailMock.mock.calls[0][0].from).toBe('"Mega Chess" <automatico@megachess.io>');
+      expect(sendMailMock.mock.calls[0][0].from).toBe('user@test.com');
     });
 
     it('uses a configured SMTP_FROM when provided', async () => {
@@ -222,7 +222,7 @@ describe('EmailService', () => {
       service.sendAdminWelcome('newadmin@test.com', 'Jack', 'Temp!2345');
 
       const call = sendMailMock.mock.calls[0][0];
-      expect(call.html).toContain('https://admin.megachess.io');
+      expect(call.html).toContain('http://localhost:5174');
     });
   });
 });

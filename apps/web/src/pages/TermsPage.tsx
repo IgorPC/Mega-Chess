@@ -202,7 +202,7 @@ export function TermsPage() {
         <Section title="12. Legislação aplicável e contato">
           <p>Estes Termos são regidos pelas leis da República Federativa do Brasil. Dúvidas, solicitações relacionadas
             a dados pessoais ou reclamações podem ser enviadas para{' '}
-            <a href="mailto:suporte@megachess.io" style={{ color: 'var(--color-primary)' }}>suporte@megachess.io</a>.</p>
+            <a href="mailto:suporte@example.com" style={{ color: 'var(--color-primary)' }}>suporte@example.com</a>.</p>
         </Section>
       </Card>
 

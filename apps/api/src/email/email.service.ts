@@ -11,8 +11,8 @@ export class EmailService {
   private readonly adminUrl: string;
 
   constructor(private config: ConfigService) {
-    this.appUrl = config.get<string>('APP_URL', 'https://megachess.io');
-    this.adminUrl = config.get<string>('ADMIN_URL', 'https://admin.megachess.io');
+    this.appUrl = config.get<string>('APP_URL', 'http://localhost');
+    this.adminUrl = config.get<string>('ADMIN_URL', 'http://localhost:5174');
     this.transporter = nodemailer.createTransport({
       host: config.getOrThrow<string>('SMTP_HOST'),
       port: config.get<number>('SMTP_PORT', 465),
@@ -122,7 +122,7 @@ export class EmailService {
   // ─── Send helper ────────────────────────────────────────────────────────────
 
   private send(to: string, subject: string, html: string): void {
-    const from = this.config.get<string>('SMTP_FROM', '"Mega Chess" <automatico@megachess.io>');
+    const from = this.config.get<string>('SMTP_FROM') ?? this.config.getOrThrow<string>('SMTP_USER');
     this.transporter
       .sendMail({ from, to, subject, html })
       .catch((err) => this.logger.error(`Falha ao enviar email para ${to}: ${err.message}`));
