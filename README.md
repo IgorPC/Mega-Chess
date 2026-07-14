@@ -2,8 +2,6 @@
   <img src="LOGO-MEGA-CHESS.png" alt="Mega Chess Online" width="360" />
 </p>
 
-<h1 align="center">Mega Chess Online</h1>
-
 <p align="center">
   A full-stack, real-time competitive chess platform with matchmaking, tournaments,
   an internal wallet with real PIX payments, and AI-assisted anti-cheat / support.
